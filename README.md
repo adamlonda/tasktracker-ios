@@ -34,6 +34,7 @@ Create a To-Do List app using the Composable Architecture (TCA). The app should 
 ## 🧩 Modules
 
 * `Models` - Data structures to work with
+* `UI` - SwiftUI views & its previews
 
 ## 📦 Third-party Dependencies
 

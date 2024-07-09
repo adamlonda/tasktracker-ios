@@ -8,18 +8,18 @@
 
 /* Begin PBXBuildFile section */
 		91144A0F2C3D3F1600860D88 /* TaskTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91144A0E2C3D3F1600860D88 /* TaskTrackerApp.swift */; };
-		91144A112C3D3F1600860D88 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91144A102C3D3F1600860D88 /* ContentView.swift */; };
 		91144A132C3D3F1700860D88 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 91144A122C3D3F1700860D88 /* Assets.xcassets */; };
 		91144A162C3D3F1700860D88 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 91144A152C3D3F1700860D88 /* Preview Assets.xcassets */; };
+		91FCD3212C3D946300042451 /* UI in Frameworks */ = {isa = PBXBuildFile; productRef = 91FCD3202C3D946300042451 /* UI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		91144A0B2C3D3F1600860D88 /* TaskTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TaskTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		91144A0E2C3D3F1600860D88 /* TaskTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskTrackerApp.swift; sourceTree = "<group>"; };
-		91144A102C3D3F1600860D88 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		91144A122C3D3F1700860D88 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		91144A152C3D3F1700860D88 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		91312C952C3D7628006174F2 /* Models */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Models; sourceTree = "<group>"; };
+		91AB85D82C3D916E0070DECE /* UI */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = UI; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -27,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				91FCD3212C3D946300042451 /* UI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -37,8 +38,10 @@
 			isa = PBXGroup;
 			children = (
 				91312C952C3D7628006174F2 /* Models */,
+				91AB85D82C3D916E0070DECE /* UI */,
 				91144A0D2C3D3F1600860D88 /* TaskTracker */,
 				91144A0C2C3D3F1600860D88 /* Products */,
+				91FCD31F2C3D946300042451 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -54,7 +57,6 @@
 			isa = PBXGroup;
 			children = (
 				91144A0E2C3D3F1600860D88 /* TaskTrackerApp.swift */,
-				91144A102C3D3F1600860D88 /* ContentView.swift */,
 				91144A122C3D3F1700860D88 /* Assets.xcassets */,
 				91144A142C3D3F1700860D88 /* Preview Content */,
 			);
@@ -67,6 +69,13 @@
 				91144A152C3D3F1700860D88 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		91FCD31F2C3D946300042451 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -87,6 +96,7 @@
 			);
 			name = TaskTracker;
 			packageProductDependencies = (
+				91FCD3202C3D946300042451 /* UI */,
 			);
 			productName = TaskTracker;
 			productReference = 91144A0B2C3D3F1600860D88 /* TaskTracker.app */;
@@ -145,7 +155,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				91144A112C3D3F1600860D88 /* ContentView.swift in Sources */,
 				91144A0F2C3D3F1600860D88 /* TaskTrackerApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -374,6 +383,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 91144A232C3D642B00860D88 /* XCRemoteSwiftPackageReference "SwiftLint" */;
 			productName = "plugin:SwiftLintBuildToolPlugin";
+		};
+		91FCD3202C3D946300042451 /* UI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = UI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
