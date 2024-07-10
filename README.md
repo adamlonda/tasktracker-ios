@@ -12,7 +12,7 @@ Create a To-Do List app using the Composable Architecture (TCA). The app should 
 
 ### Features
 
-1. **Add To-Do Item**
+1. **Add To-Do Item ✅**
 * The user should be able to add a new to-do item with a title and description.
 2. **Edit To-Do Item**
 * The user should be able to edit the title and description of an existing to-do item.
@@ -22,7 +22,7 @@ Create a To-Do List app using the Composable Architecture (TCA). The app should 
 * The user should be able to mark a to-do item as completed or pending.
 5. **Filter To-Do Items**
 * The user should be able to filter the to-do items by All, Completed, and Pending.
-6. **Persist To-Do Items**
+6. **Persist To-Do Items ✅**
 * Use local storage to persist to-do items between app launches (e.g., using UserDefaults or local file storage).
 
 ## 🔨 Targeting & build
@@ -33,10 +33,13 @@ Create a To-Do List app using the Composable Architecture (TCA). The app should 
 
 ## 🧩 Modules
 
-* `Models` - Data structures to work with
-* `UI` - SwiftUI views & its previews
+* `Models` - Data structures to work with & its mocks
+* `Storage` - Storage extensions to be used
+* `Reducers` - Reducers & unit tests
+* `UI` - SwiftUI views, previews & unified sizing
 
 ## 📦 Third-party Dependencies
 
+* [Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture)
 * [SwiftLint](https://github.com/realm/SwiftLint)
 * [Tagged](https://github.com/pointfreeco/swift-tagged)

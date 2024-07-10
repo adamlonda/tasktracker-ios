@@ -19,7 +19,9 @@
 		91144A122C3D3F1700860D88 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		91144A152C3D3F1700860D88 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		91312C952C3D7628006174F2 /* Models */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Models; sourceTree = "<group>"; };
+		91A03BF92C3EAB09008598B1 /* Reducers */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Reducers; sourceTree = "<group>"; };
 		91AB85D82C3D916E0070DECE /* UI */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = UI; sourceTree = "<group>"; };
+		91F948402C3EBA61000A50FA /* Storage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Storage; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -38,6 +40,8 @@
 			isa = PBXGroup;
 			children = (
 				91312C952C3D7628006174F2 /* Models */,
+				91F948402C3EBA61000A50FA /* Storage */,
+				91A03BF92C3EAB09008598B1 /* Reducers */,
 				91AB85D82C3D916E0070DECE /* UI */,
 				91144A0D2C3D3F1600860D88 /* TaskTracker */,
 				91144A0C2C3D3F1600860D88 /* Products */,
