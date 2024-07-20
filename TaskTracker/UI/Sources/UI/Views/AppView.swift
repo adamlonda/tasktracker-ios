@@ -53,8 +53,13 @@ public struct AppView: View {
 
     @ViewBuilder var listView: some View {
         NavigationView {
-            List(store.state.todos, id: \.id.rawValue) { todo in
-                Text(todo.title)
+            List {
+                ForEach(store.state.todos, id: \.id.rawValue) { todo in
+                    Text(todo.title)
+                }
+                .onDelete { indexSet in
+                    store.send(.onDeleteAction(indexSet))
+                }
             }
             .navigationTitle("Things to do")
             .navigationBarItems(

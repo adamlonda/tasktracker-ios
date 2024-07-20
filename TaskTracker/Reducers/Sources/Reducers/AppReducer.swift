@@ -16,6 +16,7 @@ import Storage
         case addTodoTapAction
         case addTodoFormAction(PresentationAction<TodoFormReducer.Action>)
         case confirmAddTodoAction
+        case onDeleteAction(IndexSet)
     }
 
     @Dependency(\.uuid) var uuid
@@ -36,6 +37,9 @@ import Storage
                 }
                 state.todos.append(addedTodo)
                 state.addTodoForm = nil
+                return .none
+            case .onDeleteAction(let indexSet):
+                state.todos.remove(atOffsets: indexSet)
                 return .none
             }
         }

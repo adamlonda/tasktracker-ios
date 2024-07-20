@@ -16,7 +16,7 @@ Create a To-Do List app using the Composable Architecture (TCA). The app should 
 * The user should be able to add a new to-do item with a title and description.
 2. **Edit To-Do Item**
 * The user should be able to edit the title and description of an existing to-do item.
-3. **Delete To-Do Item**
+3. **Delete To-Do Item ✅**
 * The user should be able to delete a to-do item.
 4. **Mark To-Do Item as Completed**
 * The user should be able to mark a to-do item as completed or pending.

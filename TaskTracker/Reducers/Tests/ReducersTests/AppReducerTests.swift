@@ -55,4 +55,22 @@ final class AppReducerTests: XCTestCase {
             $0.todos = [addedTodo]
         }
     }
+
+    @MainActor func test_whenDeleteIsRequested_thenTodoIsRemoved() async {
+        let firstTodo = ToDo.mock(title: "First todo")
+        let secondTodo = ToDo.mock(title: "Second todo")
+
+        @Shared(.todos) var todos = [
+            firstTodo,
+            secondTodo
+        ]
+
+        let store = TestStore(initialState: AppReducer.State()) {
+            AppReducer()
+        }
+
+        await store.send(.onDeleteAction(IndexSet(integer: 0))) {
+            $0.todos = [secondTodo]
+        }
+    }
 }
