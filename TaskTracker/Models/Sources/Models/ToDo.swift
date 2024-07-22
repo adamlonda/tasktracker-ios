@@ -1,7 +1,8 @@
+import ComposableArchitecture
 import Foundation
 import Tagged
 
-public struct ToDo: Identifiable, Equatable, Codable {
+@ObservableState public struct ToDo: Identifiable, Equatable, Codable {
 
     public let id: Tagged<Self, UUID>
     public var title: String

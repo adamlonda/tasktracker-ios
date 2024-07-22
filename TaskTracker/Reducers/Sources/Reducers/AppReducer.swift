@@ -17,6 +17,7 @@ import Storage
         case addTodoFormAction(PresentationAction<TodoFormReducer.Action>)
         case confirmAddTodoAction
         case onDeleteAction(IndexSet)
+        case todoItemAction(IdentifiedActionOf<TodoItemReducer>)
     }
 
     @Dependency(\.uuid) var uuid
@@ -41,10 +42,15 @@ import Storage
             case .onDeleteAction(let indexSet):
                 state.todos.remove(atOffsets: indexSet)
                 return .none
+            case .todoItemAction:
+                return .none
             }
         }
         .ifLet(\.$addTodoForm, action: \.addTodoFormAction) {
             TodoFormReducer()
+        }
+        .forEach(\.todos, action: \.todoItemAction) {
+            TodoItemReducer()
         }
     }
 }

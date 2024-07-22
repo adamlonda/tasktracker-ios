@@ -54,8 +54,8 @@ public struct AppView: View {
     @ViewBuilder var listView: some View {
         NavigationView {
             List {
-                ForEach(store.state.todos, id: \.id.rawValue) { todo in
-                    Text(todo.title)
+                ForEach(store.scope(state: \.todos, action: \.todoItemAction)) { store in
+                    TodoItem(store: store)
                 }
                 .onDelete { indexSet in
                     store.send(.onDeleteAction(indexSet))
@@ -96,8 +96,25 @@ public struct AppView: View {
 #Preview("Non-empty") {
     @Shared(.todos) var todos = [
         .mock(title: "First todo"),
-        .mock(title: "Second todo"),
-        .mock(title: "Third todo")
+        .mock(title: "Second todo very very very long"),
+        .mock(title: "Third todo"),
+        .mock(title: "Fourth todo"),
+        .mock(title: "Fifth todo"),
+        .mock(title: "Sixth todo"),
+        .mock(title: "Seventh todo"),
+        .mock(title: "Eighth todo"),
+        .mock(title: "Ninth todo"),
+        .mock(title: "Tenth todo"),
+        .mock(title: "Eleventh todo"),
+        .mock(title: "Twelfth todo"),
+        .mock(title: "Thirteenth todo"),
+        .mock(title: "Fourteenth todo"),
+        .mock(title: "Fifteenth todo"),
+        .mock(title: "Sixteenth todo"),
+        .mock(title: "Seventeenth todo"),
+        .mock(title: "Eighteenth todo"),
+        .mock(title: "Nineteenth todo"),
+        .mock(title: "Twentieth todo")
     ]
 
     return AppView(

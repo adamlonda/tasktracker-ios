@@ -6,7 +6,7 @@ extension ToDo {
         .mock(title: "")
     }
 
-    public static func mock(title: String) -> Self {
-        .init(id: ToDo.ID(), title: title)
+    public static func mock(title: String, isCompleted: Bool = false) -> Self {
+        .init(id: ToDo.ID(), title: title, isCompleted: isCompleted)
     }
 }
