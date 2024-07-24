@@ -10,11 +10,11 @@ public struct AppView: View {
 
     public var body: some View {
         content
-            .sheet(item: $store.scope(state: \.addTodoForm, action: \.addTodoFormAction)) { addTodoStore in
+            .sheet(item: $store.scope(state: \.todoForm, action: \.todoFormAction)) { todoFormStore in
                 NavigationStack {
                     TodoForm(
-                        store: addTodoStore,
-                        saveAction: { store.send(.confirmAddTodoAction) }
+                        store: todoFormStore,
+                        saveAction: { store.send(.saveTodoFormAction) }
                     )
                 }
             }
@@ -28,7 +28,7 @@ public struct AppView: View {
         }
     }
 
-    // MARK: - Subviews
+    // MARK: - Empty View
 
     @ViewBuilder var emptyView: some View {
         VStack(alignment: .center, spacing: .large) {
@@ -51,14 +51,21 @@ public struct AppView: View {
         .padding(.horizontal, .medium)
     }
 
+    // MARK: - List View
+
     @ViewBuilder var listView: some View {
         NavigationView {
             List {
-                ForEach(store.scope(state: \.todos, action: \.todoItemAction)) { store in
-                    TodoItem(store: store)
+                ForEach(store.scope(state: \.todos, action: \.todoItemAction)) { todoItemStore in
+                    TodoItem(
+                        store: todoItemStore,
+                        titleTapAction: {
+                            store.send(.titleTapAction($0))
+                        }
+                    )
                 }
                 .onDelete { indexSet in
-                    store.send(.onDeleteAction(indexSet))
+                    store.send(.deleteAction(indexSet))
                 }
             }
             .navigationTitle("Things to do")
@@ -94,7 +101,7 @@ public struct AppView: View {
 }
 
 #Preview("Non-empty") {
-    @Shared(.todos) var todos = [
+    @Shared(.todoStorage) var todos = [
         .mock(title: "First todo"),
         .mock(title: "Second todo very very very long"),
         .mock(title: "Third todo"),

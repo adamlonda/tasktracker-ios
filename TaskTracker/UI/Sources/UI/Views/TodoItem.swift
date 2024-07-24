@@ -1,10 +1,12 @@
 import ComposableArchitecture
+import Models
 import Reducers
 import SwiftUI
 
 struct TodoItem: View {
 
     @Bindable var store: StoreOf<TodoItemReducer>
+    var titleTapAction: (ToDo) -> Void
 
     var body: some View {
         HStack(alignment: .center, spacing: .medium) {
@@ -16,8 +18,11 @@ struct TodoItem: View {
                     .frame(width: 24, height: 24)
             }
             Text(store.title)
-                .font(.title3)
+                .font(.system(size: 20))
                 .lineLimit(1)
+                .onTapGesture {
+                    titleTapAction(store.state)
+                }
         }
     }
 }
@@ -28,6 +33,7 @@ struct TodoItem: View {
             initialState: .mock(title: "Hello Hello Hello Hello Hello Hello World 👋")
         ) {
             TodoItemReducer()
-        }
+        },
+        titleTapAction: { print("\($0.title) tapped") }
     )
 }

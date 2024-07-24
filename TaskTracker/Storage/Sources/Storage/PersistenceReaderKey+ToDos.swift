@@ -6,7 +6,7 @@ import Tagged
 extension PersistenceReaderKey
     where Self == PersistenceKeyDefault<FileStorageKey<IdentifiedArrayOf<ToDo>>> {
 
-    public static var todos: Self {
+    public static var todoStorage: Self {
         PersistenceKeyDefault(.fileStorage(.documentsDirectory.appending(component: "todos.json")), [])
     }
 }

@@ -1,4 +1,5 @@
 import Models
+import Tagged
 
 extension ToDo {
 
@@ -6,7 +7,12 @@ extension ToDo {
         .mock(title: "")
     }
 
-    public static func mock(title: String, isCompleted: Bool = false) -> Self {
-        .init(id: ToDo.ID(), title: title, isCompleted: isCompleted)
+    public static func mock(
+        id: ToDo.ID = ToDo.ID(),
+        title: String,
+        note: String = "",
+        isCompleted: Bool = false
+    ) -> Self {
+        .init(id: id, title: title, note: note, isCompleted: isCompleted)
     }
 }
