@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import Models
 import Reducers
 import SwiftUI
 
@@ -21,10 +22,10 @@ public struct AppView: View {
     }
 
     @ViewBuilder var content: some View {
-        if store.state.todos.isEmpty {
+        if store.state.storedTodos.isEmpty {
             emptyView
         } else {
-            listView
+            tabView
         }
     }
 
@@ -51,34 +52,64 @@ public struct AppView: View {
         .padding(.horizontal, .medium)
     }
 
-    // MARK: - List View
+    // MARK: - Tabs & List View
 
-    @ViewBuilder var listView: some View {
-        NavigationView {
-            List {
-                ForEach(store.scope(state: \.todos, action: \.todoItemAction)) { todoItemStore in
-                    TodoItem(
-                        store: todoItemStore,
-                        titleTapAction: {
-                            store.send(.titleTapAction($0))
-                        }
-                    )
-                }
-                .onDelete { indexSet in
-                    store.send(.deleteAction(indexSet))
-                }
+    @ViewBuilder var tabView: some View {
+        WithViewStore(self.store, observe: \.selectedTab) { viewStore in
+            TabView(selection: viewStore.binding(send: AppReducer.Action.selectedTabChangedAction)) {
+                thingsToDoTab
+                completedTab
+                allTodosTab
             }
-            .navigationTitle("Things to do")
-            .navigationBarItems(
-                trailing: Button(
-                    action: {
-                        store.send(.addTodoTapAction)
-                    }, label: {
-                        Image(systemName: "plus")
-                    }
-                )
-            )
         }
+    }
+
+    @ViewBuilder var listWithNavigationBar: some View {
+        ListWithNavigationBar(
+            store: store,
+            todoItemTitleTapAction: {
+                store.send(.titleTapAction($0))
+            },
+            onDeleteAction: { indexSet in
+                store.send(.deleteAction(indexSet))
+            },
+            addTodoTapAction: {
+                store.send(.addTodoTapAction)
+            }
+        )
+    }
+
+    // MARK: - Pending Tab
+
+    @ViewBuilder var thingsToDoTab: some View {
+        listWithNavigationBar
+            .tabItem {
+                Image(systemName: "tray")
+                Text("To Do")
+            }
+            .tag(Tab.pending)
+    }
+
+    // MARK: - Completed Tab
+
+    @ViewBuilder var completedTab: some View {
+        listWithNavigationBar
+            .tabItem {
+                Image(systemName: "checkmark.circle")
+                Text("Done")
+            }
+            .tag(Tab.completed)
+    }
+
+    // MARK: - All Todos Tab
+
+    @ViewBuilder var allTodosTab: some View {
+        listWithNavigationBar
+            .tabItem {
+                Image(systemName: "list.bullet")
+                Text("All")
+            }
+            .tag(Tab.all)
     }
 
     // MARK: - Init
