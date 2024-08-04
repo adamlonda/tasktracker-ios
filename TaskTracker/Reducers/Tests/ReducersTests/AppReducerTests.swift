@@ -53,11 +53,11 @@ final class AppReducerTests: XCTestCase {
             $0.todoForm = TodoFormReducer.State(todo: ToDo(id: expectedID, title: ""))
         }
 
-        let addedTodo = ToDo(id: expectedID, title: "Buy coffee")
+        let addedTodo = ToDo(id: expectedID, title: "Buy coffee", priority: .high)
         await store.send(\.todoFormAction.binding.todo, addedTodo)
 
         await store.send(.saveTodoFormAction) {
-            $0.filteredTodos = [addedTodo]
+            $0.displayedTodos = [addedTodo]
         }
     }
 
@@ -96,13 +96,13 @@ final class AppReducerTests: XCTestCase {
         await store.send(.selectedTabChangedAction(.all))
 
         await store.send(.deleteAction(IndexSet(integer: 0))) {
-            $0.filteredTodos = [secondTodo]
+            $0.displayedTodos = [secondTodo]
         }
     }
 
     // MARK: - Editing
 
-    @MainActor func test_whenTodoTitleIsTapped_thenTodoFormIsCreated() async {
+    @MainActor func test_whenTodoIsTapped_thenTodoFormIsCreated() async {
         let existingTodo = ToDo.mock(title: "Buy coffee")
 
         @Shared(.todoStorage) var todos = [existingTodo]
@@ -110,7 +110,7 @@ final class AppReducerTests: XCTestCase {
             AppReducer()
         }
 
-        await store.send(.titleTapAction(existingTodo)) {
+        await store.send(.todoTapAction(existingTodo)) {
             $0.todoForm = TodoFormReducer.State(todo: existingTodo)
         }
     }
@@ -125,7 +125,7 @@ final class AppReducerTests: XCTestCase {
         }
         store.exhaustivity = .off
 
-        await store.send(.titleTapAction(todo)) {
+        await store.send(.todoTapAction(todo)) {
             $0.todoForm = TodoFormReducer.State(todo: todo)
         }
 
@@ -145,43 +145,47 @@ final class AppReducerTests: XCTestCase {
         store.exhaustivity = .off
         await store.send(.selectedTabChangedAction(.all))
 
-        await store.send(.titleTapAction(originalTodo)) {
+        await store.send(.todoTapAction(originalTodo)) {
             $0.todoForm = TodoFormReducer.State(todo: originalTodo)
         }
 
-        let editedTodo = ToDo(id: todoID, title: "Buy coffee", note: "Black presso, if possible 🙏")
+        let editedTodo = ToDo(id: todoID, title: "Buy coffee", note: "Black presso, if possible 🙏", priority: .high)
         await store.send(\.todoFormAction.binding.todo, editedTodo)
 
         await store.send(.saveTodoFormAction) {
-            $0.filteredTodos = [editedTodo]
+            $0.displayedTodos = [editedTodo]
         }
     }
 
     @MainActor func test_whenCompletionIsToggled_thenChangeIsPersisted() async {
         let id = ToDo.ID(UUID(0))
         let title = "Buy coffee"
+        let now = Date.now
 
         let given = ToDo.mock(id: id, title: title)
-        let expected = ToDo.mock(id: id, title: title, isCompleted: true)
+        let expected = ToDo.mock(id: id, title: title, completedAt: now)
 
         @Shared(.todoStorage) var todos = [given]
         let store = TestStore(initialState: AppReducer.State()) {
             AppReducer()
         }
         store.exhaustivity = .off
+        store.dependencies.date = .constant(now)
+
         await store.send(.selectedTabChangedAction(.all))
 
         await store.send(.todoItemAction(.element(id: id, action: .toggleCompletionAction))) {
-            $0.filteredTodos = [expected]
+            $0.displayedTodos = [expected]
             $0.storedTodos = [expected]
         }
     }
 
-    // MARK: - Filtering
+    // MARK: - Displaying
 
+    #warning("TODO: Test sorting as well 🚧")
     @MainActor func test_whenReducerIsCreated_thenSelectedTabIsSetCorrectly() {
         let pendingTodo = ToDo.mock(title: "Pending todo")
-        let completedTodo = ToDo.mock(title: "Completed todo", isCompleted: true)
+        let completedTodo = ToDo.mock(title: "Completed todo", completedAt: .now)
 
         @Shared(.todoStorage) var todos = [pendingTodo, completedTodo]
         let store = TestStore(initialState: AppReducer.State()) {
@@ -189,13 +193,14 @@ final class AppReducerTests: XCTestCase {
         }
         store.assert {
             $0.selectedTab = .pending
-            $0.filteredTodos = [pendingTodo]
+            $0.displayedTodos = [pendingTodo]
         }
     }
 
-    @MainActor func test_whenFilterIsSet_thenTodosAreFilteredCorrectly() async {
+    #warning("TODO: Test sorting as well 🚧")
+    @MainActor func test_whenFilterIsSet_thenTodosAreDisplayedCorrectly() async {
         let pendingTodo = ToDo.mock(title: "Pending todo")
-        let completedTodo = ToDo.mock(title: "Completed todo", isCompleted: true)
+        let completedTodo = ToDo.mock(title: "Completed todo", completedAt: .now)
 
         @Shared(.todoStorage) var todos = [pendingTodo, completedTodo]
 
@@ -210,12 +215,12 @@ final class AppReducerTests: XCTestCase {
             }
             await store.send(.selectedTabChangedAction(tab)) {
                 $0.selectedTab = tab
-                $0.filteredTodos = expectedFilteredTodos
+                $0.displayedTodos = expectedFilteredTodos
             }
         }
     }
 
-    @MainActor func test_whenCompletionIsToggled_thenTodosAreFilteredCorrectly() async {
+    @MainActor func test_whenCompletionIsToggled_thenTodosAreDisplayedCorrectly() async {
         let secondID = ToDo.ID(UUID(0))
 
         let first = ToDo.mock(title: "First todo")
@@ -228,10 +233,12 @@ final class AppReducerTests: XCTestCase {
             AppReducer()
         }
         store.exhaustivity = .off
+        store.dependencies.date = .constant(.now)
+
         await store.send(.selectedTabChangedAction(.pending))
 
         await store.send(.todoItemAction(.element(id: secondID, action: .toggleCompletionAction))) {
-            $0.filteredTodos = [first]
+            $0.displayedTodos = [first]
         }
     }
 }

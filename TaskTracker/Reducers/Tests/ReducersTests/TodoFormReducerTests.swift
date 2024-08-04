@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import Models
 import ModelsMocks
 import Reducers
 import XCTest
@@ -41,5 +42,9 @@ final class TodoFormReducerTests: XCTestCase {
         await store.send(.binding(.set(\.todo.title, "Buy a coffee"))) {
             $0.isSaveDisabled = false
         }
+    }
+
+    func test_whenPriorityAllCasesIsCalled_thenOrderShouldBeCorrect() {
+        XCTAssertEqual(Priority.allCases, [.high, .normal, .low])
     }
 }

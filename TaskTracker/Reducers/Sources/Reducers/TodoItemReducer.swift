@@ -10,6 +10,8 @@ import Tagged
         case toggleCompletionAction
     }
 
+    @Dependency(\.date) var date
+
     public init() {}
 
     public var body: some ReducerOf<Self> {
@@ -20,7 +22,8 @@ import Tagged
             case .binding:
                 return .none
             case .toggleCompletionAction:
-                state.isCompleted.toggle()
+                let completedAt = state.completedAt
+                state.completedAt = completedAt == nil ? date.now : nil
                 return .none
             }
         }

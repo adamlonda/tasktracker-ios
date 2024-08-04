@@ -1,3 +1,4 @@
+import Foundation
 import Models
 import Tagged
 
@@ -11,8 +12,9 @@ extension ToDo {
         id: ToDo.ID = ToDo.ID(),
         title: String,
         note: String = "",
-        isCompleted: Bool = false
+        completedAt: Date? = nil,
+        priority: Priority = .normal
     ) -> Self {
-        .init(id: id, title: title, note: note, isCompleted: isCompleted)
+        .init(id: id, title: title, note: note, completedAt: completedAt, priority: priority)
     }
 }

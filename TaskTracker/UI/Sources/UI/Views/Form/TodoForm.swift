@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import Models
 import ModelsMocks
 import Reducers
 import SwiftUI
@@ -22,15 +23,14 @@ struct TodoForm: View {
             Section {
                 TextField("What's this will be about?", text: $store.todo.title)
                     .focused($focus, equals: .title)
-            } header: {
-                Text("Summary")
+                PriorityPicker(selection: $store.todo.priority)
             }
 
             Section {
                 TextField("Need anything further to note?", text: $store.todo.note, axis: .vertical)
                     .lineLimit(13, reservesSpace: true)
             } header: {
-                Text("Notes")
+                Text("Note")
             }
         }
     }

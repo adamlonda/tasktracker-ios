@@ -7,7 +7,7 @@ struct ListWithNavigationBar: View {
 
     @Bindable var store: StoreOf<AppReducer>
 
-    var todoItemTitleTapAction: (ToDo) -> Void
+    var todoItemTapAction: (ToDo) -> Void
     var onDeleteAction: (IndexSet) -> Void
     var addTodoTapAction: () -> Void
 
@@ -29,7 +29,7 @@ struct ListWithNavigationBar: View {
     }
 
     @ViewBuilder var content: some View {
-        if store.state.filteredTodos.isEmpty {
+        if store.state.displayedTodos.isEmpty {
             emptyView
         } else {
             list
@@ -56,10 +56,10 @@ struct ListWithNavigationBar: View {
 
     @ViewBuilder var list: some View {
         List {
-            ForEach(store.scope(state: \.filteredTodos, action: \.todoItemAction)) { todoItemStore in
+            ForEach(store.scope(state: \.displayedTodos, action: \.todoItemAction)) { todoItemStore in
                 TodoItem(
                     store: todoItemStore,
-                    titleTapAction: todoItemTitleTapAction
+                    tapAction: todoItemTapAction
                 )
             }
             .onDelete { indexSet in
@@ -122,7 +122,7 @@ extension Tab {
 extension ListWithNavigationBar {
     fileprivate init(store: StoreOf<AppReducer>) {
         self.store = store
-        self.todoItemTitleTapAction = { print("\($0.title) tapped") }
+        self.todoItemTapAction = { print("\($0.title) tapped") }
         self.onDeleteAction = { _ in }
         self.addTodoTapAction = { print("Add button tapped") }
     }
@@ -167,8 +167,8 @@ extension StoreOf<AppReducer> {
         store: .store(
             for: .completed,
             with: [
-                .mock(title: "Second todo", isCompleted: true),
-                .mock(title: "Fourth todo", isCompleted: true)
+                .mock(title: "Second todo", completedAt: .now),
+                .mock(title: "Fourth todo", completedAt: .now)
             ]
         )
     )
@@ -184,9 +184,9 @@ extension StoreOf<AppReducer> {
             for: .all,
             with: [
                 .mock(title: "First todo"),
-                .mock(title: "Second todo", isCompleted: true),
+                .mock(title: "Second todo", completedAt: .now),
                 .mock(title: "Third todo"),
-                .mock(title: "Fourth todo", isCompleted: true)
+                .mock(title: "Fourth todo", completedAt: .now)
             ]
         )
     )

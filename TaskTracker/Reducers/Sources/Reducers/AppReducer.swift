@@ -7,7 +7,7 @@ import Storage
 
     @ObservableState public struct State: Equatable {
         @Shared(.todoStorage) public var storedTodos: IdentifiedArrayOf<ToDo> = []
-        public var filteredTodos: IdentifiedArrayOf<ToDo> = []
+        public var displayedTodos: IdentifiedArrayOf<ToDo> = []
 
         public var selectedTab: Tab
         public var pendingTab = PendingTabReducer.State()
@@ -18,11 +18,11 @@ import Storage
 
         public init() {
             self.selectedTab = .pending
-            self.updateFilteredTodos()
+            self.updateDisplayedTodos()
         }
 
-        private mutating func updateFilteredTodos() {
-            filteredTodos = selectedTab.filteredTodos(from: storedTodos)
+        private mutating func updateDisplayedTodos() {
+            displayedTodos = selectedTab.displayedTodos(from: storedTodos)
         }
     }
 
@@ -32,7 +32,7 @@ import Storage
         case saveTodoFormAction
         case deleteAction(IndexSet)
         case todoItemAction(IdentifiedActionOf<TodoItemReducer>)
-        case titleTapAction(ToDo)
+        case todoTapAction(ToDo)
 
         case selectedTabChangedAction(Tab)
         case pendingTabAction(PendingTabReducer.Action)
@@ -41,6 +41,7 @@ import Storage
     }
 
     @Dependency(\.uuid) var uuid
+    @Dependency(\.date) var date
 
     public init() {}
 
@@ -59,8 +60,8 @@ import Storage
                 return reduceDelete(state: &state, indexSet: indexSet)
             case .todoItemAction(let action):
                 return reduceTodoItem(state: &state, action: action)
-            case .titleTapAction(let todo):
-                return reduceTitleTap(state: &state, todo: todo)
+            case .todoTapAction(let todo):
+                return reduceTodoTap(state: &state, todo: todo)
             case .selectedTabChangedAction(let tab):
                 return reduceSelectedTabChanged(state: &state, tab: tab)
             }
@@ -68,8 +69,9 @@ import Storage
         .ifLet(\.$todoForm, action: \.todoFormAction) {
             TodoFormReducer()
         }
-        .forEach(\.filteredTodos, action: \.todoItemAction) {
+        .forEach(\.displayedTodos, action: \.todoItemAction) {
             TodoItemReducer()
+                .dependency(\.date, date)
         }
         Scope(state: \.pendingTab, action: /Action.pendingTabAction) {
             PendingTabReducer()
@@ -100,7 +102,7 @@ import Storage
         if addingNewTodo && state.selectedTab == .completed {
             state.selectedTab = .pending
         }
-        updateFilteredTodos(on: &state, for: state.selectedTab)
+        updateDisplayedTodos(on: &state, for: state.selectedTab)
 
         state.todoForm = nil
         return .none
@@ -108,20 +110,20 @@ import Storage
 
     private func reduceDelete(state: inout State, indexSet: IndexSet) -> Effect<Action> {
         for index in indexSet {
-            state.storedTodos.remove(id: state.filteredTodos[index].id)
+            state.storedTodos.remove(id: state.displayedTodos[index].id)
         }
-        updateFilteredTodos(on: &state, for: state.selectedTab)
+        updateDisplayedTodos(on: &state, for: state.selectedTab)
         return .none
     }
 
-    private func reduceTitleTap(state: inout State, todo: ToDo) -> Effect<Action> {
+    private func reduceTodoTap(state: inout State, todo: ToDo) -> Effect<Action> {
         state.todoForm = TodoFormReducer.State(todo: todo)
         return .none
     }
 
     private func reduceSelectedTabChanged(state: inout State, tab: Tab) -> Effect<Action> {
         state.selectedTab = tab
-        updateFilteredTodos(on: &state, for: tab)
+        updateDisplayedTodos(on: &state, for: tab)
         return .none
     }
 
@@ -129,8 +131,8 @@ import Storage
         switch action {
         case .element(let id, let action):
             if case .toggleCompletionAction = action {
-                state.storedTodos[id: id] = state.filteredTodos[id: id]
-                updateFilteredTodos(on: &state, for: state.selectedTab)
+                state.storedTodos[id: id] = state.displayedTodos[id: id]
+                updateDisplayedTodos(on: &state, for: state.selectedTab)
             }
         }
         return .none
@@ -138,20 +140,21 @@ import Storage
 
     // MARK: - DRY Methods
 
-    private func updateFilteredTodos(on state: inout State, for tab: Tab) {
-        state.filteredTodos = tab.filteredTodos(from: state.storedTodos)
+    private func updateDisplayedTodos(on state: inout State, for tab: Tab) {
+        state.displayedTodos = tab.displayedTodos(from: state.storedTodos)
     }
 }
 
 extension Tab {
-    fileprivate func filteredTodos(from allTodos: IdentifiedArrayOf<ToDo>) -> IdentifiedArrayOf<ToDo> {
+    fileprivate func displayedTodos(from allTodos: IdentifiedArrayOf<ToDo>) -> IdentifiedArrayOf<ToDo> {
+        #warning("TODO: implement sorting as well 🚧")
         switch self {
         case .all:
             return allTodos
         case .pending:
-            return allTodos.filter { $0.isCompleted == false }
+            return allTodos.filter { $0.completedAt == nil }
         case .completed:
-            return allTodos.filter { $0.isCompleted }
+            return allTodos.filter { $0.completedAt != nil }
         }
     }
 }

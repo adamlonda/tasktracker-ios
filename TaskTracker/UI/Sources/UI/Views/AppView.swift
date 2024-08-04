@@ -56,7 +56,9 @@ public struct AppView: View {
 
     @ViewBuilder var tabView: some View {
         WithViewStore(self.store, observe: \.selectedTab) { viewStore in
-            TabView(selection: viewStore.binding(send: AppReducer.Action.selectedTabChangedAction)) {
+            TabView(
+                selection: viewStore.binding(send: AppReducer.Action.selectedTabChangedAction)
+            ) {
                 thingsToDoTab
                 completedTab
                 allTodosTab
@@ -67,8 +69,8 @@ public struct AppView: View {
     @ViewBuilder var listWithNavigationBar: some View {
         ListWithNavigationBar(
             store: store,
-            todoItemTitleTapAction: {
-                store.send(.titleTapAction($0))
+            todoItemTapAction: {
+                store.send(.todoTapAction($0))
             },
             onDeleteAction: { indexSet in
                 store.send(.deleteAction(indexSet))
