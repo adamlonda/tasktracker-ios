@@ -17,8 +17,14 @@ import Models
         }
     }
 
-    public enum Action: BindableAction {
+    public enum Delegate: Equatable {
+        case save
+    }
+
+    public enum Action: BindableAction, Equatable {
         case binding(BindingAction<State>)
+        case delegate(Delegate)
+        case saveAction
     }
 
     public init() {}
@@ -31,6 +37,10 @@ import Models
             case .binding:
                 state.isSaveDisabled = state.todo.title.isEmpty
                 return .none
+            case .delegate:
+                return .none
+            case .saveAction:
+                return .send(.delegate(.save))
             }
         }
     }

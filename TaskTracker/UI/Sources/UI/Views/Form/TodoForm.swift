@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import Models
 import ModelsMocks
 import Reducers
 import SwiftUI
@@ -7,7 +8,6 @@ struct TodoForm: View {
 
     @Bindable var store: StoreOf<TodoFormReducer>
     @FocusState var focus: TodoFormReducer.Field?
-    var saveAction: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: .medium) {
@@ -22,22 +22,21 @@ struct TodoForm: View {
             Section {
                 TextField("What's this will be about?", text: $store.todo.title)
                     .focused($focus, equals: .title)
-            } header: {
-                Text("Summary")
+                PriorityPicker(selection: $store.todo.priority)
             }
 
             Section {
                 TextField("Need anything further to note?", text: $store.todo.note, axis: .vertical)
                     .lineLimit(13, reservesSpace: true)
             } header: {
-                Text("Notes")
+                Text("Note")
             }
         }
     }
 
     @ViewBuilder var saveButton: some View {
         Button {
-            saveAction()
+            store.send(.saveAction)
         } label: {
             HStack {
                 Image(systemName: "checkmark")
@@ -59,7 +58,6 @@ struct TodoForm: View {
             initialState: TodoFormReducer.State(todo: .new)
         ) {
             TodoFormReducer()
-        },
-        saveAction: {}
+        }
     )
 }

@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import Models
 import ModelsMocks
 import Reducers
 import XCTest
@@ -41,5 +42,24 @@ final class TodoFormReducerTests: XCTestCase {
         await store.send(.binding(.set(\.todo.title, "Buy a coffee"))) {
             $0.isSaveDisabled = false
         }
+    }
+
+    @MainActor func test_whenSaveButtonIsTapped_thenDelegateIsTriggered() async {
+        let store = TestStore(
+            initialState: TodoFormReducer.State(todo: .mock(title: ""))
+        ) {
+            TodoFormReducer()
+        }
+        store.exhaustivity = .off
+
+        await store.send(.binding(.set(\.todo.title, "Buy a coffee")))
+        await store.send(.saveAction)
+        await store.receive {
+            $0 == .delegate(.save)
+        }
+    }
+
+    func test_whenPriorityAllCasesIsCalled_thenOrderShouldBeCorrect() {
+        XCTAssertEqual(Priority.allCases, [.high, .normal, .low])
     }
 }

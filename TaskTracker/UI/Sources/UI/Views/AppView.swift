@@ -10,20 +10,15 @@ public struct AppView: View {
     // MARK: - Body
 
     public var body: some View {
-        content
-            .sheet(item: $store.scope(state: \.todoForm, action: \.todoFormAction)) { todoFormStore in
-                NavigationStack {
-                    TodoForm(
-                        store: todoFormStore,
-                        saveAction: { store.send(.saveTodoFormAction) }
-                    )
-                }
-            }
-    }
-
-    @ViewBuilder var content: some View {
         if store.state.storedTodos.isEmpty {
             emptyView
+                .sheet(
+                    item: $store.scope(state: \.todoForm, action: \.todoFormAction)
+                ) { todoFormStore in
+                    NavigationStack {
+                        TodoForm(store: todoFormStore)
+                    }
+                }
         } else {
             tabView
         }
@@ -52,11 +47,13 @@ public struct AppView: View {
         .padding(.horizontal, .medium)
     }
 
-    // MARK: - Tabs & List View
+    // MARK: - Tabs View
 
     @ViewBuilder var tabView: some View {
         WithViewStore(self.store, observe: \.selectedTab) { viewStore in
-            TabView(selection: viewStore.binding(send: AppReducer.Action.selectedTabChangedAction)) {
+            TabView(
+                selection: viewStore.binding(send: AppReducer.Action.selectedTabChangedAction)
+            ) {
                 thingsToDoTab
                 completedTab
                 allTodosTab
@@ -64,25 +61,10 @@ public struct AppView: View {
         }
     }
 
-    @ViewBuilder var listWithNavigationBar: some View {
-        ListWithNavigationBar(
-            store: store,
-            todoItemTitleTapAction: {
-                store.send(.titleTapAction($0))
-            },
-            onDeleteAction: { indexSet in
-                store.send(.deleteAction(indexSet))
-            },
-            addTodoTapAction: {
-                store.send(.addTodoTapAction)
-            }
-        )
-    }
-
     // MARK: - Pending Tab
 
     @ViewBuilder var thingsToDoTab: some View {
-        listWithNavigationBar
+        TodoListTabView(store: store.scope(state: \.pendingTab, action: \.pendingTabAction))
             .tabItem {
                 Image(systemName: "tray")
                 Text("To Do")
@@ -93,7 +75,7 @@ public struct AppView: View {
     // MARK: - Completed Tab
 
     @ViewBuilder var completedTab: some View {
-        listWithNavigationBar
+        TodoListTabView(store: store.scope(state: \.completedTab, action: \.completedTabAction))
             .tabItem {
                 Image(systemName: "checkmark.circle")
                 Text("Done")
@@ -104,7 +86,7 @@ public struct AppView: View {
     // MARK: - All Todos Tab
 
     @ViewBuilder var allTodosTab: some View {
-        listWithNavigationBar
+        TodoListTabView(store: store.scope(state: \.allTab, action: \.allTabAction))
             .tabItem {
                 Image(systemName: "list.bullet")
                 Text("All")

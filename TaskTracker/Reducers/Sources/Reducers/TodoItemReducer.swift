@@ -5,10 +5,13 @@ import Tagged
 @Reducer public struct TodoItemReducer {
     public typealias State = ToDo
 
-    public enum Action: BindableAction {
+    public enum Action: BindableAction, Equatable {
         case binding(BindingAction<State>)
         case toggleCompletionAction
+        case tapAction
     }
+
+    @Dependency(\.date) var date
 
     public init() {}
 
@@ -20,7 +23,10 @@ import Tagged
             case .binding:
                 return .none
             case .toggleCompletionAction:
-                state.isCompleted.toggle()
+                let completedAt = state.completedAt
+                state.completedAt = completedAt == nil ? date.now : nil
+                return .none
+            case .tapAction:
                 return .none
             }
         }
