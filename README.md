@@ -26,6 +26,8 @@ Create a To-Do List app using the Composable Architecture (TCA). The app should 
 * Use local storage to persist to-do items between app launches (e.g., using UserDefaults or local file storage).
 7. **Priority Levels ✅**
 * Let users assign priority levels (e.g., low, medium, high) to tasks, sort tasks by priority.
+8. **Due Date**
+* Allow users to set a due date for each task.
 
 ## 🔨 Targeting & build
 
