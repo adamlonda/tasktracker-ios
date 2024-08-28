@@ -28,6 +28,10 @@ Create a To-Do List app using the Composable Architecture (TCA). The app should 
 * Let users assign priority levels (e.g., low, medium, high) to tasks, sort tasks by priority.
 8. **Due Date ✅**
 * Allow users to set a due date for each task.
+9. **Recurring Tasks**
+* Provide an option for users to set tasks as recurring (daily, weekly, monthly, annually).
+10. **Move to Trash**
+* Instead of permanently deleting a to-do item, users can move it to a Trash Bin.
 
 ## 🔨 Targeting & build
 
