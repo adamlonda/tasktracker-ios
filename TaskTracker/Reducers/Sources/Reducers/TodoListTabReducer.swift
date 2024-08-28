@@ -2,24 +2,17 @@ import ComposableArchitecture
 import Foundation
 import Models
 
-@Reducer public struct TabReducer {
+@Reducer public struct TodoListTabReducer {
 
     @ObservableState public struct State: Equatable {
         @Shared(.todoStorage) public var storedTodos: IdentifiedArrayOf<ToDo> = []
-        public var displayedTodos: IdentifiedArrayOf<ToDo> = []
+        public var displayedTodos: IdentifiedArrayOf<TodoItemReducer.State> = []
 
         @Presents public var todoForm: TodoFormReducer.State?
         public let tab: Tab
 
         public init(_ tab: Tab) {
             self.tab = tab
-            updateDisplayedTodos()
-        }
-
-        fileprivate mutating func updateDisplayedTodos() {
-            var filtered = tab.filteredTodos(from: storedTodos)
-            filtered.sort(by: >)
-            displayedTodos = filtered
         }
     }
 
@@ -36,8 +29,9 @@ import Models
         case onAppearAction
     }
 
-    @Dependency(\.uuid) var uuid
+    @Dependency(\.calendar) var calendar
     @Dependency(\.date) var date
+    @Dependency(\.uuid) var uuid
 
     public init() {}
 
@@ -80,7 +74,7 @@ import Models
         for index in indexSet {
             state.storedTodos.remove(id: state.displayedTodos[index].id)
         }
-        state.updateDisplayedTodos()
+        updateDisplayedTodos(on: &state)
         return .none
     }
 
@@ -91,18 +85,25 @@ import Models
         guard case .presented(.delegate(.save)) = formAction else {
             return .none
         }
-        guard let todoToSave = state.todoForm?.todo else {
+        guard var todoToSave = state.todoForm?.todo else {
             return .none
         }
-
         let addingNewTodo = state.storedTodos.contains { $0.id == todoToSave.id } == false
+
+        let trimmedDueDate = todoToSave.dueDate?.trim(with: calendar)
+        todoToSave.dueDate = trimmedDueDate
         state.storedTodos[id: todoToSave.id] = todoToSave
+
         state.todoForm = nil
 
-        if addingNewTodo && state.tab == .completed {
+        let addingOnCompleted = addingNewTodo && state.tab == .completed
+        let addingNonTodayOnToday = todoToSave.isListedFor(today: date.now, by: calendar) == false
+            && state.tab == .today
+
+        if addingOnCompleted || addingNonTodayOnToday {
             return .send(.delegate(.switchToPendingTab))
         } else {
-            state.updateDisplayedTodos()
+            updateDisplayedTodos(on: &state)
             return .none
         }
     }
@@ -111,8 +112,8 @@ import Models
         switch action {
         case .element(let id, let elementAction):
             if case .toggleCompletionAction = elementAction {
-                state.storedTodos[id: id] = state.displayedTodos[id: id]
-                state.updateDisplayedTodos()
+                state.storedTodos[id: id] = state.displayedTodos[id: id]?.todo
+                updateDisplayedTodos(on: &state)
             } else if case .tapAction = elementAction {
                 if let todoToEdit = state.storedTodos[id: id] {
                     state.todoForm = TodoFormReducer.State(todo: todoToEdit)
@@ -123,7 +124,18 @@ import Models
     }
 
     private func reduceOnAppear(state: inout State) -> Effect<Action> {
-        state.updateDisplayedTodos()
+        updateDisplayedTodos(on: &state)
         return .none
+    }
+
+    private func updateDisplayedTodos(on state: inout State) {
+        let now = date.now
+        var filtered = state.tab.filteredTodos(from: state.storedTodos, for: now, calendar: calendar)
+        filtered.sort(by: >)
+        state.displayedTodos = .init(
+            uniqueElements: filtered.map {
+                TodoItemReducer.State(todo: $0, dueLabel: $0.dueLabel(calendar: calendar, now: now))
+            }
+        )
     }
 }

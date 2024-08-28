@@ -12,7 +12,7 @@ final class AppReducerTests: XCTestCase {
             AppReducer()
         }
         store.assert {
-            $0.selectedTab = .pending
+            $0.selectedTab = .today
         }
     }
 
@@ -33,16 +33,23 @@ final class AppReducerTests: XCTestCase {
     }
 
     @MainActor func test_whenSwitchToPendingDelegateReceived_thenTabIsSwitchedToPending() async {
-        let store = TestStore(initialState: AppReducer.State()) {
-            AppReducer()
-        } withDependencies: {
-            $0.uuid = .incrementing
-        }
-        store.exhaustivity = .off
+        let tabActionMap: [Tab: AppReducer.Action] = [
+            .completed: .completedTabAction(.delegate(.switchToPendingTab)),
+            .today: .todayTabAction(.delegate(.switchToPendingTab))
+        ]
 
-        await store.send(.selectedTabChangedAction(.completed))
-        await store.send(.completedTabAction(.delegate(.switchToPendingTab))) {
-            $0.selectedTab = .pending
+        for (tab, tabAction) in tabActionMap {
+            let store = TestStore(initialState: AppReducer.State()) {
+                AppReducer()
+            } withDependencies: {
+                $0.uuid = .incrementing
+            }
+            store.exhaustivity = .off
+
+            await store.send(.selectedTabChangedAction(tab))
+            await store.send(tabAction) {
+                $0.selectedTab = .pending
+            }
         }
     }
 
@@ -66,6 +73,8 @@ final class AppReducerTests: XCTestCase {
         let store = TestStore(initialState: AppReducer.State()) {
             AppReducer()
         } withDependencies: {
+            $0.calendar = .current
+            $0.date = .constant(.now)
             $0.uuid = .incrementing
         }
         store.exhaustivity = .off
@@ -80,9 +89,13 @@ final class AppReducerTests: XCTestCase {
     }
 
     @MainActor func test_whenAddTodoIsConfirmed_thenTodoIsAdded() async {
+        let calendar = Calendar.current
+        let today = Date.now
         let store = TestStore(initialState: AppReducer.State()) {
             AppReducer()
         } withDependencies: {
+            $0.calendar = calendar
+            $0.date = .constant(today)
             $0.uuid = .incrementing
         }
         store.exhaustivity = .off
@@ -93,11 +106,48 @@ final class AppReducerTests: XCTestCase {
             $0.todoForm = TodoFormReducer.State(todo: ToDo(id: expectedID, title: ""))
         }
 
-        let addedTodo = ToDo(id: expectedID, title: "Buy coffee", priority: .high)
+        let expectedTitle = "Buy coffee"
+        let expectedPriority = Priority.high
+        let addedTodo = ToDo(id: expectedID, title: expectedTitle, priority: expectedPriority, dueDate: today)
         await store.send(\.todoFormAction.binding.todo, addedTodo)
 
+        let expectedDueDate = today.trim(with: calendar)
+        let expectedTodo = ToDo(
+            id: expectedID, title: expectedTitle, priority: expectedPriority, dueDate: expectedDueDate
+        )
         await store.send(.todoFormAction(.presented(.delegate(.save)))) {
-            $0.storedTodos = [addedTodo]
+            $0.storedTodos = [expectedTodo]
+        }
+    }
+
+    @MainActor func test_whenAddTodoIsConfirmed_thenCorrectTabShouldBeSelected() async {
+        let now = Date.now
+        let dueYesterday = ToDo.mock(title: "Due yesterday", dueDate: now.addingTimeInterval(-24 * 60 * 60))
+        let dueToday = ToDo.mock(title: "Due today", dueDate: now)
+        let dueTomorrow = ToDo.mock(title: "Due tomorrow", dueDate: now.addingTimeInterval(24 * 60 * 60))
+
+        let expectationMap: [ToDo: Tab] = [
+            dueYesterday: .today,
+            dueToday: .today,
+            dueTomorrow: .pending,
+            .normalPriority: .pending
+        ]
+
+        for (todo, expectedTab) in expectationMap {
+            let store = TestStore(initialState: AppReducer.State()) {
+                AppReducer()
+            } withDependencies: {
+                $0.calendar = .current
+                $0.date = .constant(now)
+                $0.uuid = .incrementing
+            }
+            store.exhaustivity = .off
+
+            await store.send(.addTodoTapAction)
+            await store.send(\.todoFormAction.binding.todo, todo)
+            await store.send(.todoFormAction(.presented(.delegate(.save)))) {
+                $0.selectedTab = expectedTab
+            }
         }
     }
 }

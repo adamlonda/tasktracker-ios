@@ -54,11 +54,23 @@ public struct AppView: View {
             TabView(
                 selection: viewStore.binding(send: AppReducer.Action.selectedTabChangedAction)
             ) {
+                todayTab
                 thingsToDoTab
                 completedTab
                 allTodosTab
             }
         }
+    }
+
+    // MARK: - Today Tab
+
+    @ViewBuilder var todayTab: some View {
+        TodoListTabView(store: store.scope(state: \.todayTab, action: \.todayTabAction))
+            .tabItem {
+                Image(systemName: "calendar")
+                Text("Today")
+            }
+            .tag(Tab.today)
     }
 
     // MARK: - Pending Tab
@@ -114,13 +126,14 @@ public struct AppView: View {
 }
 
 #Preview("Non-empty") {
+    let now = Date.now
     @Shared(.todoStorage) var todos = [
-        .mock(title: "First todo"),
-        .mock(title: "Second todo very very very long"),
-        .mock(title: "Third todo"),
-        .mock(title: "Fourth todo"),
-        .mock(title: "Fifth todo"),
-        .mock(title: "Sixth todo"),
+        .mock(title: "First todo", dueDate: now.addingTimeInterval(-2 * 24 * 60 * 60)),
+        .mock(title: "Second todo", dueDate: now.addingTimeInterval(-24 * 60 * 60)),
+        .mock(title: "Third todo very very very long", dueDate: now),
+        .mock(title: "Fourth todo", dueDate: now.addingTimeInterval(24 * 60 * 60)),
+        .mock(title: "Fifth todo", dueDate: now.addingTimeInterval(2 * 24 * 60 * 60)),
+        .mock(title: "Sixth todo", dueDate: now.addingTimeInterval(7 * 24 * 60 * 60)),
         .mock(title: "Seventh todo"),
         .mock(title: "Eighth todo"),
         .mock(title: "Ninth todo"),

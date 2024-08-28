@@ -5,7 +5,7 @@ import SwiftUI
 
 struct TodoListTabView: View {
 
-    @Bindable var store: StoreOf<TabReducer>
+    @Bindable var store: StoreOf<TodoListTabReducer>
 
     // MARK: - Body
 
@@ -81,6 +81,8 @@ extension Tab {
             return "Already done"
         case .all:
             return "To do & Done"
+        case .today:
+            return "To do today"
         }
     }
 
@@ -92,6 +94,8 @@ extension Tab {
             return "tray.fill"
         case .all:
             return ""
+        case .today:
+            return "calendar.badge.checkmark"
         }
     }
 
@@ -103,6 +107,8 @@ extension Tab {
             return .blue
         case .all:
             return .clear
+        case .today:
+            return .green
         }
     }
 
@@ -114,11 +120,37 @@ extension Tab {
             return "Seems like nothing is done, yet."
         case .all:
             return ""
+        case .today:
+            return "Seems like nothing is scheduled for today, yet."
         }
     }
 }
 
 // MARK: - Previews
+
+#Preview("Today") {
+    @Shared(.todoStorage) var todos = [
+        .mock(title: "First todo", dueDate: .now),
+        .mock(title: "Second todo", dueDate: .now)
+    ]
+    return TodoListTabView(
+        store: Store(
+            initialState: TodoListTabReducer.State(.today)
+        ) {
+            TodoListTabReducer()
+        }
+    )
+}
+
+#Preview("Empty Today") {
+    return TodoListTabView(
+        store: Store(
+            initialState: TodoListTabReducer.State(.today)
+        ) {
+            TodoListTabReducer()
+        }
+    )
+}
 
 #Preview("To Do") {
     @Shared(.todoStorage) var todos = [
@@ -127,9 +159,9 @@ extension Tab {
     ]
     return TodoListTabView(
         store: Store(
-            initialState: TabReducer.State(.pending)
+            initialState: TodoListTabReducer.State(.pending)
         ) {
-            TabReducer()
+            TodoListTabReducer()
         }
     )
 }
@@ -137,9 +169,9 @@ extension Tab {
 #Preview("Empty To Do") {
     TodoListTabView(
         store: Store(
-            initialState: TabReducer.State(.pending)
+            initialState: TodoListTabReducer.State(.pending)
         ) {
-            TabReducer()
+            TodoListTabReducer()
         }
     )
 }
@@ -151,9 +183,9 @@ extension Tab {
     ]
     return TodoListTabView(
         store: Store(
-            initialState: TabReducer.State(.completed)
+            initialState: TodoListTabReducer.State(.completed)
         ) {
-            TabReducer()
+            TodoListTabReducer()
         }
     )
 }
@@ -161,9 +193,9 @@ extension Tab {
 #Preview("Empty Done") {
     TodoListTabView(
         store: Store(
-            initialState: TabReducer.State(.completed)
+            initialState: TodoListTabReducer.State(.completed)
         ) {
-            TabReducer()
+            TodoListTabReducer()
         }
     )
 }
@@ -177,9 +209,9 @@ extension Tab {
     ]
     return TodoListTabView(
         store: Store(
-            initialState: TabReducer.State(.all)
+            initialState: TodoListTabReducer.State(.all)
         ) {
-            TabReducer()
+            TodoListTabReducer()
         }
     )
 }

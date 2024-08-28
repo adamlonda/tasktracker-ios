@@ -22,7 +22,8 @@ struct TodoForm: View {
             Section {
                 TextField("What's this will be about?", text: $store.todo.title)
                     .focused($focus, equals: .title)
-                PriorityPicker(selection: $store.todo.priority)
+                NullableDatePicker("Due date", selection: $store.todo.dueDate)
+                PriorityPicker("Priority", selection: $store.todo.priority)
             }
 
             Section {

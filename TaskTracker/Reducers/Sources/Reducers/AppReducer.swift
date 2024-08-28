@@ -8,11 +8,12 @@ import Storage
     @ObservableState public struct State: Equatable {
         @Shared(.todoStorage) public var storedTodos: IdentifiedArrayOf<ToDo> = []
 
-        public var pendingTab = TabReducer.State(.pending)
-        public var completedTab = TabReducer.State(.completed)
-        public var allTab = TabReducer.State(.all)
+        public var todayTab = TodoListTabReducer.State(.today)
+        public var pendingTab = TodoListTabReducer.State(.pending)
+        public var completedTab = TodoListTabReducer.State(.completed)
+        public var allTab = TodoListTabReducer.State(.all)
 
-        public var selectedTab: Tab = .pending
+        public var selectedTab: Tab = .today
         @Presents public var todoForm: TodoFormReducer.State?
 
         public init() {}
@@ -21,12 +22,15 @@ import Storage
     public enum Action {
         case addTodoTapAction
         case selectedTabChangedAction(Tab)
-        case pendingTabAction(TabReducer.Action)
-        case completedTabAction(TabReducer.Action)
-        case allTabAction(TabReducer.Action)
+        case todayTabAction(TodoListTabReducer.Action)
+        case pendingTabAction(TodoListTabReducer.Action)
+        case completedTabAction(TodoListTabReducer.Action)
+        case allTabAction(TodoListTabReducer.Action)
         case todoFormAction(PresentationAction<TodoFormReducer.Action>)
     }
 
+    @Dependency(\.calendar) var calendar
+    @Dependency(\.date) var date
     @Dependency(\.uuid) var uuid
 
     public init() {}
@@ -40,10 +44,12 @@ import Storage
                 return reduceAddTodoTap(state: &state)
             case .selectedTabChangedAction(let tab):
                 return reduceSelectedTabChanged(state: &state, tab: tab)
+            case .todayTabAction(let tabAction):
+                return reduceSwitchToPendingTab(state: &state, tabAction: tabAction)
             case .pendingTabAction:
                 return .none
             case .completedTabAction(let tabAction):
-                return reduceCompletedTab(state: &state, tabAction: tabAction)
+                return reduceSwitchToPendingTab(state: &state, tabAction: tabAction)
             case .allTabAction:
                 return .none
             case .todoFormAction(let formAction):
@@ -53,14 +59,17 @@ import Storage
         .ifLet(\.$todoForm, action: \.todoFormAction) {
             TodoFormReducer()
         }
+        Scope(state: \.todayTab, action: /Action.todayTabAction) {
+            TodoListTabReducer()
+        }
         Scope(state: \.pendingTab, action: /Action.pendingTabAction) {
-            TabReducer()
+            TodoListTabReducer()
         }
         Scope(state: \.completedTab, action: /Action.completedTabAction) {
-            TabReducer()
+            TodoListTabReducer()
         }
         Scope(state: \.allTab, action: /Action.allTabAction) {
-            TabReducer()
+            TodoListTabReducer()
         }
     }
 
@@ -76,7 +85,7 @@ import Storage
         return .none
     }
 
-    private func reduceCompletedTab(state: inout State, tabAction: TabReducer.Action) -> Effect<Action> {
+    private func reduceSwitchToPendingTab(state: inout State, tabAction: TodoListTabReducer.Action) -> Effect<Action> {
         if case .delegate(.switchToPendingTab) = tabAction {
             state.selectedTab = .pending
         }
@@ -90,11 +99,16 @@ import Storage
         guard case .presented(.delegate(.save)) = formAction else {
             return .none
         }
-        guard let todoToSave = state.todoForm?.todo else {
+        guard var todoToSave = state.todoForm?.todo else {
             return .none
         }
+        let trimmedDueDate = todoToSave.dueDate?.trim(with: calendar)
+        todoToSave.dueDate = trimmedDueDate
         state.storedTodos[id: todoToSave.id] = todoToSave
+
         state.todoForm = nil
+        state.selectedTab = todoToSave.isListedFor(today: date.now, by: calendar) ? .today : .pending
+
         return .none
     }
 }

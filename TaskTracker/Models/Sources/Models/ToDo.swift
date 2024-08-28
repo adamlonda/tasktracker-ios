@@ -2,24 +2,27 @@ import ComposableArchitecture
 import Foundation
 import Tagged
 
-@ObservableState public struct ToDo: Identifiable, Equatable, Codable {
+@ObservableState public struct ToDo: Identifiable, Equatable, Codable, Hashable {
 
     public let id: Tagged<Self, UUID>
     public var title: String
     public var note: String
     public var completedAt: Date?
     public var priority: Priority
+    public var dueDate: Date?
 
     public init(
         id: Tagged<Self, UUID>,
         title: String, note: String = "",
         completedAt: Date? = nil,
-        priority: Priority = .normal
+        priority: Priority = .normal,
+        dueDate: Date? = nil
     ) {
         self.id = id
         self.title = title
         self.note = note
         self.completedAt = completedAt
         self.priority = priority
+        self.dueDate = dueDate
     }
 }
