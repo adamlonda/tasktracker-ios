@@ -23,6 +23,8 @@ struct TodoForm: View {
                 TextField("What's this will be about?", text: $store.todo.title)
                     .focused($focus, equals: .title)
                 NullableDatePicker("Due date", selection: $store.todo.dueDate)
+                RecurrencePicker("Recurrence", selection: $store.todo.recurrence)
+                    .disabled(store.isRecurrenceDisabled)
                 PriorityPicker("Priority", selection: $store.todo.priority)
             }
 

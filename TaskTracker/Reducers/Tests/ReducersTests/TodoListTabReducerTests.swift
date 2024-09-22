@@ -68,7 +68,7 @@ final class TodoListTabReducerTests: XCTestCase {
             id: expectedID, title: expectedTitle, priority: expectedPriority, dueDate: todayTrimmed
         )
         await store.send(.todoFormAction(.presented(.delegate(.save)))) {
-            $0.displayedTodos = [.init(todo: expectedTodo, dueLabel: .today)]
+            $0.displayedTodos = [expectedTodo]
         }
     }
 
@@ -105,9 +105,7 @@ final class TodoListTabReducerTests: XCTestCase {
         store.exhaustivity = .off
 
         await store.send(.addTodoTapAction)
-        await store.send(
-            \.todoFormAction.binding.todo, .mock(title: "Buy coffee", dueDate: now.addingTimeInterval(24 * 60 * 60))
-        )
+        await store.send(\.todoFormAction.binding.todo, .dueTomorrow(from: now, title: "Buy coffee"))
 
         await store.send(.todoFormAction(.presented(.delegate(.save))))
         await store.receive {
@@ -136,7 +134,7 @@ final class TodoListTabReducerTests: XCTestCase {
         await store.send(.onAppearAction)
 
         await store.send(.deleteAction(IndexSet(integer: 0))) {
-            $0.displayedTodos = [.init(todo: secondTodo, dueLabel: nil)]
+            $0.displayedTodos = [secondTodo]
         }
     }
 
@@ -217,13 +215,13 @@ final class TodoListTabReducerTests: XCTestCase {
             id: todoID, title: expectedTitle, note: expectedNote, priority: expectedPriority, dueDate: trimmedToday
         )
         await store.send(.todoFormAction(.presented(.delegate(.save)))) {
-            $0.displayedTodos = [.init(todo: expectedTodo, dueLabel: .today)]
+            $0.displayedTodos = [expectedTodo]
         }
     }
 
     // MARK: - Completion
 
-    @MainActor func test_whenCompletionIsToggled_thenChangeIsPersisted() async {
+    @MainActor func test_whenCompletionIsChanged_thenChangeIsPersisted() async {
         let id = ToDo.ID(UUID(0))
         let title = "Buy coffee"
         let now = Date.now
@@ -241,13 +239,13 @@ final class TodoListTabReducerTests: XCTestCase {
         store.exhaustivity = .off
         await store.send(.onAppearAction)
 
-        await store.send(.todoItemAction(.element(id: id, action: .toggleCompletionAction))) {
-            $0.displayedTodos = [.init(todo: expected, dueLabel: nil)]
+        await store.send(.todoItemAction(.element(id: id, action: .completionAction))) {
+            $0.displayedTodos = [expected]
             $0.storedTodos = [expected]
         }
     }
 
-    @MainActor func test_whenCompletionIsToggled_thenTodosAreDisplayedCorrectly() async {
+    @MainActor func test_whenCompletionIsChanged_thenTodosAreDisplayedCorrectly() async {
         let secondID = ToDo.ID(UUID(0))
 
         let first = ToDo.mock(title: "First todo")
@@ -265,8 +263,8 @@ final class TodoListTabReducerTests: XCTestCase {
         store.exhaustivity = .off
         await store.send(.onAppearAction)
 
-        await store.send(.todoItemAction(.element(id: secondID, action: .toggleCompletionAction))) {
-            $0.displayedTodos = [.init(todo: first, dueLabel: nil)]
+        await store.send(.todoItemAction(.element(id: secondID, action: .completionAction))) {
+            $0.displayedTodos = [first]
         }
     }
 }
@@ -284,14 +282,14 @@ extension TodoListTabReducerTests {
         let completedTwoSecondsAgo = ToDo.mock(
             title: "Completed two seconds ago", completedAt: now.addingTimeInterval(-2), dueDate: now
         )
-        let overdue = ToDo.mock(title: "Overdue", dueDate: now.addingTimeInterval(-2 * 24 * 60 * 60))
-        let dueYesterday = ToDo.mock(title: "Due yesterday", dueDate: now.addingTimeInterval(-24 * 60 * 60))
+        let overdue = ToDo.twoDaysOverdue(from: now, title: "Overdue")
+        let dueYesterday = ToDo.dueYesterday(from: now, title: "Due yesterday")
         let dueTodayNormal = ToDo.mock(title: "Due today", dueDate: now)
         let dueTodayHigh = ToDo.mock(title: "Due today high", priority: .high, dueDate: now)
         let dueTodayLow = ToDo.mock(title: "Due today low", priority: .low, dueDate: now)
-        let dueTomorrow = ToDo.mock(title: "Due tomorrow", dueDate: now.addingTimeInterval(24 * 60 * 60))
-        let dueThisWeek = ToDo.mock(title: "Due this week", dueDate: now.addingTimeInterval(2 * 24 * 60 * 60))
-        let dueNextWeek = ToDo.mock(title: "Due next week", dueDate: now.addingTimeInterval(7 * 24 * 60 * 60))
+        let dueTomorrow = ToDo.dueTomorrow(from: now, title: "Due tomorrow")
+        let dueThisWeek = ToDo.dueThisWeek(from: now, title: "Due this week")
+        let dueNextWeek = ToDo.dueNextWeek(from: now, title: "Due next week")
 
         @Shared(.todoStorage) var todos = [
             .lowPriority, .normalPriority, .highPriority, completedTwoSecondsAgo, completedSecondAgo, completedNow,
@@ -323,9 +321,7 @@ extension TodoListTabReducerTests {
 
             store.assert {
                 $0.displayedTodos = .init(
-                    uniqueElements: expectedDisplayedTodos.map {
-                        .init(todo: $0, dueLabel: $0.dueLabel(calendar: calendar, now: now))
-                    }
+                    uniqueElements: expectedDisplayedTodos
                 )
             }
         }
@@ -352,36 +348,7 @@ extension TodoListTabReducerTests {
             todos[id: secondID] = .mock(id: secondID, title: "Second todo", completedAt: .now)
         }
         await store.send(.onAppearAction) {
-            $0.displayedTodos = [.init(todo: first, dueLabel: nil)]
-        }
-    }
-
-    @MainActor func test_whenDueDatesAreGiven_thenDueLabelsAreSetCorrectly() async {
-        let calendar = Calendar.current
-        let now = Date.now
-        let expectationMap: [ToDo: DueLabel?] = [
-            .mock(title: ""): nil,
-            .mock(title: "", dueDate: now.addingTimeInterval(-2 * 24 * 60 * 60)): .overdue,
-            .mock(title: "", dueDate: now.addingTimeInterval(-24 * 60 * 60)): .yesterday,
-            .mock(title: "", dueDate: now): .today,
-            .mock(title: "", dueDate: now.addingTimeInterval(24 * 60 * 60)): .tomorrow,
-            .mock(title: "", dueDate: now.addingTimeInterval(2 * 24 * 60 * 60)): .thisWeek,
-            .mock(title: "", dueDate: now.addingTimeInterval(7 * 24 * 60 * 60)): .nextWeekAndBeyond
-        ]
-
-        @Shared(.todoStorage) var todos = .init(uniqueElements: expectationMap.keys)
-        let store = TestStore(initialState: TodoListTabReducer.State(.all)) {
-            TodoListTabReducer()
-        } withDependencies: {
-            $0.calendar = calendar
-            $0.date = .constant(now)
-        }
-        store.exhaustivity = .off
-
-        for (todo, expectedDueLabel) in expectationMap {
-            await store.send(.onAppearAction) {
-                $0.displayedTodos[id: todo.id] = .init(todo: todo, dueLabel: expectedDueLabel)
-            }
+            $0.displayedTodos = [first]
         }
     }
 }

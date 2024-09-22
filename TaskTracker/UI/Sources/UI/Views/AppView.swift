@@ -128,12 +128,12 @@ public struct AppView: View {
 #Preview("Non-empty") {
     let now = Date.now
     @Shared(.todoStorage) var todos = [
-        .mock(title: "First todo", dueDate: now.addingTimeInterval(-2 * 24 * 60 * 60)),
-        .mock(title: "Second todo", dueDate: now.addingTimeInterval(-24 * 60 * 60)),
+        .twoDaysOverdue(from: now, title: "First todo"),
+        .dueYesterday(from: now, title: "Second todo"),
         .mock(title: "Third todo very very very long", dueDate: now),
-        .mock(title: "Fourth todo", dueDate: now.addingTimeInterval(24 * 60 * 60)),
-        .mock(title: "Fifth todo", dueDate: now.addingTimeInterval(2 * 24 * 60 * 60)),
-        .mock(title: "Sixth todo", dueDate: now.addingTimeInterval(7 * 24 * 60 * 60)),
+        .dueTomorrow(from: now, title: "Fourth todo"),
+        .dueThisWeek(from: now, title: "Fifth todo"),
+        .dueNextWeek(from: now, title: "Sixth todo"),
         .mock(title: "Seventh todo"),
         .mock(title: "Eighth todo"),
         .mock(title: "Ninth todo"),

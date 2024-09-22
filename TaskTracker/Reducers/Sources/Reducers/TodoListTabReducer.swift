@@ -111,8 +111,8 @@ import Models
     private func reduceTodoItem(state: inout State, action: IdentifiedActionOf<TodoItemReducer>) -> Effect<Action> {
         switch action {
         case .element(let id, let elementAction):
-            if case .toggleCompletionAction = elementAction {
-                state.storedTodos[id: id] = state.displayedTodos[id: id]?.todo
+            if case .completionAction = elementAction {
+                state.storedTodos[id: id] = state.displayedTodos[id: id]
                 updateDisplayedTodos(on: &state)
             } else if case .tapAction = elementAction {
                 if let todoToEdit = state.storedTodos[id: id] {
@@ -132,10 +132,6 @@ import Models
         let now = date.now
         var filtered = state.tab.filteredTodos(from: state.storedTodos, for: now, calendar: calendar)
         filtered.sort(by: >)
-        state.displayedTodos = .init(
-            uniqueElements: filtered.map {
-                TodoItemReducer.State(todo: $0, dueLabel: $0.dueLabel(calendar: calendar, now: now))
-            }
-        )
+        state.displayedTodos = filtered
     }
 }

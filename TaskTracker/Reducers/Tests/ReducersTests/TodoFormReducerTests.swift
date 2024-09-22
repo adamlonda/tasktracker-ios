@@ -62,4 +62,43 @@ final class TodoFormReducerTests: XCTestCase {
     func test_whenPriorityAllCasesIsCalled_thenOrderShouldBeCorrect() {
         XCTAssertEqual(Priority.allCases, [.high, .normal, .low])
     }
+
+    @MainActor func test_whenDueDateIsCleared_thenRecurrenceShouldBeNever() async {
+        let store = TestStore(
+            initialState: TodoFormReducer.State(todo: .mock(dueDate: .now, recurrence: .daily))
+        ) {
+            TodoFormReducer()
+        }
+        store.exhaustivity = .off
+
+        await store.send(.binding(.set(\.todo.dueDate, nil))) {
+            $0.todo.recurrence = .never
+        }
+    }
+
+    @MainActor func test_whenDueDateIsNil_thenRecurrenceIsDisabled() async {
+        let store = TestStore(
+            initialState: TodoFormReducer.State(todo: .mock(dueDate: .now))
+        ) {
+            TodoFormReducer()
+        }
+        store.exhaustivity = .off
+
+        await store.send(.binding(.set(\.todo.dueDate, nil))) {
+            $0.isRecurrenceDisabled = true
+        }
+    }
+
+    @MainActor func test_whenDueDateIsNotNil_thenRecurrenceIsEnabled() async {
+        let store = TestStore(
+            initialState: TodoFormReducer.State(todo: .mock(dueDate: nil))
+        ) {
+            TodoFormReducer()
+        }
+        store.exhaustivity = .off
+
+        await store.send(.binding(.set(\.todo.dueDate, .now))) {
+            $0.isRecurrenceDisabled = false
+        }
+    }
 }

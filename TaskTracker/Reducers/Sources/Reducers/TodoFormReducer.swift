@@ -10,6 +10,7 @@ import Models
     @ObservableState public struct State: Equatable {
         public var todo: ToDo
         public var focus: Field? = .title
+        public var isRecurrenceDisabled: Bool = true
         public var isSaveDisabled: Bool = true
 
         public init(todo: ToDo) {
@@ -35,13 +36,24 @@ import Models
         Reduce { state, action in
             switch action {
             case .binding:
-                state.isSaveDisabled = state.todo.title.isEmpty
-                return .none
+                return reduceBinding(state: &state)
             case .delegate:
                 return .none
             case .saveAction:
                 return .send(.delegate(.save))
             }
         }
+    }
+
+    private func reduceBinding(state: inout State) -> Effect<Action> {
+        state.isSaveDisabled = state.todo.title.isEmpty
+
+        let isDueDateNil = state.todo.dueDate == nil
+        state.isRecurrenceDisabled = isDueDateNil
+
+        if isDueDateNil {
+            state.todo.recurrence = .never
+        }
+        return .none
     }
 }

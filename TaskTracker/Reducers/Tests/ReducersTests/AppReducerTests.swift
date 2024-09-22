@@ -122,9 +122,9 @@ final class AppReducerTests: XCTestCase {
 
     @MainActor func test_whenAddTodoIsConfirmed_thenCorrectTabShouldBeSelected() async {
         let now = Date.now
-        let dueYesterday = ToDo.mock(title: "Due yesterday", dueDate: now.addingTimeInterval(-24 * 60 * 60))
+        let dueYesterday = ToDo.dueYesterday(from: now, title: "Due yesterday")
         let dueToday = ToDo.mock(title: "Due today", dueDate: now)
-        let dueTomorrow = ToDo.mock(title: "Due tomorrow", dueDate: now.addingTimeInterval(24 * 60 * 60))
+        let dueTomorrow = ToDo.dueTomorrow(from: now, title: "Due tomorrow")
 
         let expectationMap: [ToDo: Tab] = [
             dueYesterday: .today,

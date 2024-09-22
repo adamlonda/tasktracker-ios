@@ -4,24 +4,15 @@ import Models
 import Tagged
 
 @Reducer public struct TodoItemReducer {
-
-    @ObservableState public struct State: Equatable, Identifiable {
-        public var id: ToDo.ID { todo.id }
-        public var todo: ToDo
-        public var dueLabel: DueLabel?
-
-        public init(todo: ToDo, dueLabel: DueLabel?) {
-            self.todo = todo
-            self.dueLabel = dueLabel
-        }
-    }
+    public typealias State = ToDo
 
     public enum Action: BindableAction, Equatable {
         case binding(BindingAction<State>)
-        case toggleCompletionAction
+        case completionAction
         case tapAction
     }
 
+    @Dependency(\.calendar) var calendar
     @Dependency(\.date) var date
 
     public init() {}
@@ -33,38 +24,37 @@ import Tagged
             switch action {
             case .binding:
                 return .none
-            case .toggleCompletionAction:
-                let completedAt = state.todo.completedAt
-                state.todo.completedAt = completedAt == nil ? date.now : nil
-                return .none
+            case .completionAction:
+                return reduceCompletion(state: &state)
             case .tapAction:
                 return .none
             }
         }
     }
-}
 
-extension ToDo {
-    public func dueLabel(calendar: Calendar, now: Date) -> DueLabel? {
-        guard let dueDate = dueDate else {
-            return nil
+    private func reduceCompletion(state: inout State) -> Effect<Action> {
+        switch state.recurrence {
+        case .never:
+            let completedAt = state.completedAt
+            state.completedAt = completedAt == nil ? date.now : nil
+            return .none
+        case .daily:
+            guard let dueDate = state.dueDate else { return .none }
+            return reduceRecurrence(state: &state, with: calendar.date(byAdding: .day, value: 1, to: dueDate))
+        case .weekly:
+            guard let dueDate = state.dueDate else { return .none }
+            return reduceRecurrence(state: &state, with: calendar.date(byAdding: .day, value: 7, to: dueDate))
+        case .monthly:
+            guard let dueDate = state.dueDate else { return .none }
+            return reduceRecurrence(state: &state, with: calendar.date(byAdding: .month, value: 1, to: dueDate))
+        case .annually:
+            guard let dueDate = state.dueDate else { return .none }
+            return reduceRecurrence(state: &state, with: calendar.date(byAdding: .year, value: 1, to: dueDate))
         }
-        if calendar.isDateInToday(dueDate) {
-            return .today
-        } else if calendar.isDateInYesterday(dueDate) {
-            return .yesterday
-        } else if calendar.isDateInTomorrow(dueDate) {
-            return .tomorrow
-        } else if dueDate < now {
-            return .overdue
-        }
+    }
 
-        let components = calendar.dateComponents([.day], from: now, to: dueDate)
-
-        if let day = components.day, 0 < day && day < 6 {
-            return .thisWeek
-        }
-
-        return .nextWeekAndBeyond
+    private func reduceRecurrence(state: inout State, with newDueDate: Date?) -> Effect<Action> {
+        state.dueDate = newDueDate?.trim(with: calendar)
+        return .none
     }
 }

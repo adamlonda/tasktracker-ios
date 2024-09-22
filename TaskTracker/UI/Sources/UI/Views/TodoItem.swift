@@ -25,16 +25,16 @@ struct TodoItem: View {
 
     @ViewBuilder var checkButton: some View {
         Button {
-            store.send(.toggleCompletionAction)
+            store.send(.completionAction)
         } label: {
-            Image(systemName: store.todo.completedAt == nil ? "circle" : "checkmark.circle.fill")
+            Image(systemName: store.completedAt == nil ? "circle" : "checkmark.circle.fill")
                 .resizable()
                 .frame(width: 24, height: 24)
         }
     }
 
     @ViewBuilder var todoTitle: some View {
-        Text(store.todo.title)
+        Text(store.title)
             .font(.body)
             .lineLimit(1)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -45,17 +45,17 @@ struct TodoItem: View {
     }
 
     @ViewBuilder var priority: some View {
-        Image(systemName: store.todo.priority.imageName)
+        Image(systemName: store.priority.imageName)
             .resizable()
             .scaledToFit()
             .frame(width: 16, height: 16)
-            .foregroundStyle(store.todo.priority.color)
+            .foregroundStyle(store.priority.color)
             .background(Color.listItemBackground)
             .onTapGesture { onTap() }
     }
 
     @ViewBuilder var dueLabel: some View {
-        if store.dueLabel != nil {
+        if store.dueDate != nil {
             HStack(alignment: .center, spacing: .xxSmall) {
                 Image(systemName: "calendar")
                     .resizable()
@@ -66,6 +66,12 @@ struct TodoItem: View {
                     .font(.callout)
                     .fontWeight(.semibold)
                     .strikethrough(store.strikethrough)
+                if store.recurrence != .never {
+                    Image(systemName: "repeat")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
+                }
             }
             .padding(.xxSmall)
             .background(store.dueLabelColor.opacity(0.3))
@@ -83,48 +89,62 @@ struct TodoItem: View {
 // MARK: - Due Date Labels
 
 extension TodoItemReducer.State {
+
     fileprivate var dueLabelText: String {
-        guard let dueDate = todo.dueDate, let dueLabel = dueLabel else {
+        guard let dueDate = dueDate else {
             return ""
         }
-        let formatter = DateFormatter()
-        switch dueLabel {
-        case .today:
+        let calendar = Calendar.current
+
+        if calendar.isDateInToday(dueDate) {
             return "Today"
-        case .yesterday:
+        } else if calendar.isDateInYesterday(dueDate) {
             return "Yesterday"
-        case .tomorrow:
+        } else if calendar.isDateInTomorrow(dueDate) {
             return "Tomorrow"
-        case .thisWeek:
+        }
+
+        let formatter = DateFormatter()
+        let now = Date.now
+
+        let dayComponents = calendar.dateComponents([.day], from: now, to: dueDate)
+        if let day = dayComponents.day, 0 < day && day < 6 {
             formatter.dateFormat = "EEEE"
             return formatter.string(from: dueDate)
-        case .nextWeekAndBeyond, .overdue:
-            formatter.dateFormat = "dd MMM"
+        }
+
+        let monthComponents = calendar.dateComponents([.month], from: now, to: dueDate)
+        if abs(monthComponents.month ?? 0) >= 11 {
+            formatter.dateFormat = "dd MMM yyyy"
             return formatter.string(from: dueDate)
         }
+
+        formatter.dateFormat = "dd MMM"
+        return formatter.string(from: dueDate)
     }
 
     fileprivate var strikethrough: Bool {
-        todo.completedAt != nil
+        completedAt != nil
     }
 
     fileprivate var foregroundStyle: HierarchicalShapeStyle {
-        todo.completedAt == nil ? .primary : .secondary
+        completedAt == nil ? .primary : .secondary
     }
 
     fileprivate var dueLabelColor: Color {
-        guard let dueLabel = dueLabel else {
+        guard let dueDate = dueDate else {
             return .clear
         }
-        guard todo.completedAt == nil else {
+        guard completedAt == nil else {
             return .gray
         }
-        switch dueLabel {
-        case .yesterday, .overdue:
-            return .red
-        case .today, .tomorrow:
+        let calendar = Calendar.current
+
+        if calendar.isDateInToday(dueDate) || calendar.isDateInTomorrow(dueDate) {
             return .yellow
-        case .thisWeek, .nextWeekAndBeyond:
+        } else if calendar.dateComponents([.day], from: .now, to: dueDate).day ?? 0 < 0 {
+            return .red
+        } else {
             return .gray
         }
     }
@@ -138,12 +158,22 @@ extension [ToDo] {
             .highPriority,
             .normalPriority,
             .lowPriority,
-            .mock(title: "Two Days Overdue", dueDate: now.addingTimeInterval(-2 * 24 * 60 * 60)),
-            .mock(title: "Due Yesterday", dueDate: now.addingTimeInterval(-24 * 60 * 60)),
+            .yearOverdue(from: now, title: "Year Overdue"),
+            .yearOverdue(from: now, title: "Year Overdue", recurrence: .annually),
+            .twoDaysOverdue(from: now, title: "Two Days Overdue"),
+            .twoDaysOverdue(from: now, title: "Two Days Overdue", recurrence: .daily),
+            .dueYesterday(from: now, title: "Due Yesterday"),
+            .dueYesterday(from: now, title: "Due Yesterday", recurrence: .weekly),
             .mock(title: "Due Today", dueDate: now),
-            .mock(title: "Due Tomorrow", dueDate: now.addingTimeInterval(24 * 60 * 60)),
-            .mock(title: "Due In Two Days", dueDate: now.addingTimeInterval(2 * 24 * 60 * 60)),
-            .mock(title: "Due In Seven Days", dueDate: now.addingTimeInterval(7 * 24 * 60 * 60)),
+            .mock(title: "Due Today", dueDate: now, recurrence: .monthly),
+            .dueTomorrow(from: now, title: "Due Tomorrow"),
+            .dueTomorrow(from: now, title: "Due Tomorrow", recurrence: .annually),
+            .dueThisWeek(from: now, title: "Due In Two Days"),
+            .dueThisWeek(from: now, title: "Due In Two Days", recurrence: .daily),
+            .dueNextWeek(from: now, title: "Due In Seven Days"),
+            .dueNextWeek(from: now, title: "Due In Seven Days", recurrence: .weekly),
+            .dueNextYear(from: now, title: "Due Next Year"),
+            .dueNextYear(from: now, title: "Due Next Year", recurrence: .annually),
             .mock(title: "Very very very very very very long")
         ]
     }
@@ -154,12 +184,7 @@ extension [ToDo] {
     return List {
         ForEach([ToDo].previewTodos(now: now), id: \.id) { todo in
             TodoItem(
-                store: Store(
-                    initialState: .init(
-                        todo: todo,
-                        dueLabel: todo.dueLabel(calendar: .current, now: now)
-                    )
-                ) {
+                store: Store(initialState: todo) {
                     TodoItemReducer()
                 },
                 onTapUIDebug: { print("Tap action goes here for \(todo.title)") }
