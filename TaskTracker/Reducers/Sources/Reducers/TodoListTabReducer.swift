@@ -22,6 +22,8 @@ import Models
 
     public enum Action: Equatable {
         case addTodoTapAction
+        case moveToTrashAction(IndexSet)
+        case moveFromTrashAction(IndexSet)
         case deleteAction(IndexSet)
         case todoFormAction(PresentationAction<TodoFormReducer.Action>)
         case todoItemAction(IdentifiedActionOf<TodoItemReducer>)
@@ -42,6 +44,10 @@ import Models
             switch action {
             case .addTodoTapAction:
                 return reduceAddTodoTap(state: &state)
+            case .moveToTrashAction(let indexSet):
+                return reduceMoveToTrash(state: &state, indexSet: indexSet)
+            case .moveFromTrashAction(let indexSet):
+                return reduceMoveFromTrash(state: &state, indexSet: indexSet)
             case .deleteAction(let indexSet):
                 return reduceDelete(state: &state, indexSet: indexSet)
             case .todoFormAction(let formAction):
@@ -67,6 +73,22 @@ import Models
 
     private func reduceAddTodoTap(state: inout State) -> Effect<Action> {
         state.todoForm = TodoFormReducer.State(todo: ToDo(id: ToDo.ID(uuid()), title: ""))
+        return .none
+    }
+
+    private func reduceMoveToTrash(state: inout State, indexSet: IndexSet) -> Effect<Action> {
+        for index in indexSet {
+            state.storedTodos[id: state.displayedTodos[index].id]?.trashedAt = date.now
+        }
+        updateDisplayedTodos(on: &state)
+        return .none
+    }
+
+    private func reduceMoveFromTrash(state: inout State, indexSet: IndexSet) -> Effect<Action> {
+        for index in indexSet {
+            state.storedTodos[id: state.displayedTodos[index].id]?.trashedAt = nil
+        }
+        updateDisplayedTodos(on: &state)
         return .none
     }
 
@@ -97,10 +119,11 @@ import Models
         state.todoForm = nil
 
         let addingOnCompleted = addingNewTodo && state.tab == .completed
+        let addingOnTrashBin = addingNewTodo && state.tab == .trashBin
         let addingNonTodayOnToday = todoToSave.isListedFor(today: date.now, by: calendar) == false
             && state.tab == .today
 
-        if addingOnCompleted || addingNonTodayOnToday {
+        if addingOnCompleted || addingOnTrashBin || addingNonTodayOnToday {
             return .send(.delegate(.switchToPendingTab))
         } else {
             updateDisplayedTodos(on: &state)

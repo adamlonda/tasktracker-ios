@@ -58,14 +58,29 @@ struct TodoListTabView: View {
 
     // MARK: - List
 
+    #warning("TODO: Figure out onDelete for trash bin 🚧")
     @ViewBuilder var listView: some View {
         List {
-            ForEach(store.scope(state: \.displayedTodos, action: \.todoItemAction)) { todoItemStore in
-                TodoItem(store: todoItemStore)
+            if store.state.tab == .trashBin {
+                forEach
+            } else {
+                forEachOnDelete
             }
-            .onDelete { indexSet in
-                store.send(.deleteAction(indexSet))
-            }
+        }
+    }
+
+    @ViewBuilder var forEachOnDelete: some View {
+        ForEach(store.scope(state: \.displayedTodos, action: \.todoItemAction)) { todoItemStore in
+            TodoItem(store: todoItemStore)
+        }
+        .onDelete { indexSet in
+            store.send(.moveToTrashAction(indexSet))
+        }
+    }
+
+    @ViewBuilder var forEach: some View {
+        ForEach(store.scope(state: \.displayedTodos, action: \.todoItemAction)) { todoItemStore in
+            TodoItem(store: todoItemStore)
         }
     }
 }
@@ -83,6 +98,8 @@ extension Models.Tab {
             return "To do & Done"
         case .today:
             return "To do today"
+        case .trashBin:
+            return "Trash bin"
         }
     }
 
@@ -96,10 +113,12 @@ extension Models.Tab {
             return ""
         case .today:
             return "calendar.badge.checkmark"
+        case .trashBin:
+            return "trash.slash.fill"
         }
     }
 
-    fileprivate var emptyImageColor: Color {
+    fileprivate var emptyImageColor: Color? {
         switch self {
         case .pending:
             return .green
@@ -109,6 +128,8 @@ extension Models.Tab {
             return .clear
         case .today:
             return .green
+        case .trashBin:
+            return nil
         }
     }
 
@@ -122,6 +143,8 @@ extension Models.Tab {
             return ""
         case .today:
             return "Seems like nothing is scheduled for today, yet."
+        case .trashBin:
+            return "Seems like trash bin is empty, for now."
         }
     }
 }
@@ -210,6 +233,32 @@ extension Models.Tab {
     return TodoListTabView(
         store: Store(
             initialState: TodoListTabReducer.State(.all)
+        ) {
+            TodoListTabReducer()
+        }
+    )
+}
+
+#Preview("Empty Bin") {
+    TodoListTabView(
+        store: Store(
+            initialState: TodoListTabReducer.State(.trashBin)
+        ) {
+            TodoListTabReducer()
+        }
+    )
+}
+
+#Preview("Bin") {
+    let now = Date.now
+    @Shared(.todoStorage) var todos = [
+        .mock(title: "Two seconds ago", trashedAt: .twoSecondsAgo(from: now)),
+        .mock(title: "Second ago", trashedAt: .secondAgo(from: now)),
+        .mock(title: "Now", trashedAt: now)
+    ]
+    return TodoListTabView(
+        store: Store(
+            initialState: TodoListTabReducer.State(.trashBin)
         ) {
             TodoListTabReducer()
         }
