@@ -35,9 +35,9 @@ Create a To-Do List app using the Composable Architecture (TCA). The app should 
 
 ## 🔨 Targeting & build
 
-* iOS 17.5
-* Xcode 15.4 (15F31d)
-* Swift 5.10
+* iOS 18
+* Xcode 16.0 (16A242d)
+* Swift 6
 
 ## 🧩 Modules
 

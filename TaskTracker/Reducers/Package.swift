@@ -1,10 +1,10 @@
-// swift-tools-version: 5.10
+// swift-tools-version: 6.0
 
 import PackageDescription
 
 let package = Package(
     name: "Reducers",
-    platforms: [.iOS(.v17)],
+    platforms: [.iOS(.v18)],
     products: [
         .library(
             name: "Reducers",
@@ -14,7 +14,7 @@ let package = Package(
     dependencies: [
         .package(name: "Models", path: "../Models"),
         .package(name: "Storage", path: "../Storage"),
-        .package(url: "https://github.com/realm/SwiftLint", from: "0.55.1")
+        .package(url: "https://github.com/realm/SwiftLint", from: "0.57.0")
     ],
     targets: [
         .target(

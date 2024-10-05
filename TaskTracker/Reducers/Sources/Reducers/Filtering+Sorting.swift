@@ -39,7 +39,7 @@ extension ToDo {
 
 // MARK: - Sorting
 
-extension Priority: Comparable {
+extension Priority: @retroactive Comparable {
 
     private var sortOrder: Int {
         switch self {
@@ -57,7 +57,7 @@ extension Priority: Comparable {
     }
 }
 
-extension ToDo: Comparable {
+extension ToDo: @retroactive Comparable {
 
     private var completedAtSortOrder: Date {
         completedAt ?? Date.distantFuture

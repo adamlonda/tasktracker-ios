@@ -72,7 +72,7 @@ struct TodoListTabView: View {
 
 // MARK: - Tab UI Extensions
 
-extension Tab {
+extension Models.Tab {
     fileprivate var title: String {
         switch self {
         case .pending:

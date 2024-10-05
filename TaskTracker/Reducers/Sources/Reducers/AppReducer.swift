@@ -59,16 +59,16 @@ import Storage
         .ifLet(\.$todoForm, action: \.todoFormAction) {
             TodoFormReducer()
         }
-        Scope(state: \.todayTab, action: /Action.todayTabAction) {
+        Scope(state: \.todayTab, action: \.todayTabAction) {
             TodoListTabReducer()
         }
-        Scope(state: \.pendingTab, action: /Action.pendingTabAction) {
+        Scope(state: \.pendingTab, action: \.pendingTabAction) {
             TodoListTabReducer()
         }
-        Scope(state: \.completedTab, action: /Action.completedTabAction) {
+        Scope(state: \.completedTab, action: \.completedTabAction) {
             TodoListTabReducer()
         }
-        Scope(state: \.allTab, action: /Action.allTabAction) {
+        Scope(state: \.allTab, action: \.allTabAction) {
             TodoListTabReducer()
         }
     }

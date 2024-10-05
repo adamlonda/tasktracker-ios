@@ -1,4 +1,4 @@
-public enum Recurrence: Codable, CaseIterable, Hashable, Identifiable {
+public enum Recurrence: Codable, CaseIterable, Hashable, Identifiable, Sendable {
     public var id: Self { self }
 
     case never
