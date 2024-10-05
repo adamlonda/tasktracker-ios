@@ -3,4 +3,5 @@ public enum Tab {
     case completed
     case pending
     case today
+    case trashBin
 }

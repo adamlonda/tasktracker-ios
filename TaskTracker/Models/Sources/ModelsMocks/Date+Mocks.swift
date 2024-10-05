@@ -14,6 +14,14 @@ extension Date {
         now.addingTimeInterval(-24 * 60 * 60)
     }
 
+    public static func twoSecondsAgo(from now: Date) -> Self {
+        now.addingTimeInterval(-2)
+    }
+
+    public static func secondAgo(from now: Date) -> Self {
+        now.addingTimeInterval(-1)
+    }
+
     public static func tomorrow(from now: Date) -> Self {
         now.addingTimeInterval(24 * 60 * 60)
     }

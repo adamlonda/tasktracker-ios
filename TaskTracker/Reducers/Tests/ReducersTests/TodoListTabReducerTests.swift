@@ -115,6 +115,7 @@ final class TodoListTabReducerTests: XCTestCase {
 
     // MARK: - Deleting
 
+    #warning("TODO: Mark trashed instead of removing 🚧")
     @MainActor func test_whenDeleteIsRequested_thenTodoIsRemoved() async {
         let firstTodo = ToDo.mock(title: "First todo")
         let secondTodo = ToDo.mock(title: "Second todo")
@@ -277,23 +278,25 @@ extension TodoListTabReducerTests {
         let calendar = Calendar.current
         let now = Date.now
 
-        let completedNow = ToDo.mock(title: "Completed now", completedAt: now)
-        let completedSecondAgo = ToDo.mock(title: "Completed second ago", completedAt: now.addingTimeInterval(-1))
-        let completedTwoSecondsAgo = ToDo.mock(
-            title: "Completed two seconds ago", completedAt: now.addingTimeInterval(-2), dueDate: now
-        )
-        let overdue = ToDo.twoDaysOverdue(from: now, title: "Overdue")
-        let dueYesterday = ToDo.dueYesterday(from: now, title: "Due yesterday")
-        let dueTodayNormal = ToDo.mock(title: "Due today", dueDate: now)
-        let dueTodayHigh = ToDo.mock(title: "Due today high", priority: .high, dueDate: now)
-        let dueTodayLow = ToDo.mock(title: "Due today low", priority: .low, dueDate: now)
-        let dueTomorrow = ToDo.dueTomorrow(from: now, title: "Due tomorrow")
-        let dueThisWeek = ToDo.dueThisWeek(from: now, title: "Due this week")
-        let dueNextWeek = ToDo.dueNextWeek(from: now, title: "Due next week")
+        let completedNow = ToDo.mock(completedAt: now)
+        let completedSecondAgo = ToDo.mock(completedAt: .secondAgo(from: now))
+        let completedTwoSecondsAgo = ToDo.mock(completedAt: .twoSecondsAgo(from: now), dueDate: now)
+        let overdue = ToDo.twoDaysOverdue(from: now)
+        let dueYesterday = ToDo.dueYesterday(from: now)
+        let dueTodayNormal = ToDo.mock(dueDate: now)
+        let dueTodayHigh = ToDo.mock(priority: .high, dueDate: now)
+        let dueTodayLow = ToDo.mock(priority: .low, dueDate: now)
+        let dueTomorrow = ToDo.dueTomorrow(from: now)
+        let dueThisWeek = ToDo.dueThisWeek(from: now)
+        let dueNextWeek = ToDo.dueNextWeek(from: now)
+        let trashedTwoSecondsAgo = ToDo.mock(trashedAt: .twoSecondsAgo(from: now))
+        let trashedSecondAgo = ToDo.mock(trashedAt: .secondAgo(from: now))
+        let trashedNow = ToDo.mock(trashedAt: now)
 
         @Shared(.todoStorage) var todos = [
             .lowPriority, .normalPriority, .highPriority, completedTwoSecondsAgo, completedSecondAgo, completedNow,
-            overdue, dueYesterday, dueTodayNormal, dueTodayHigh, dueTodayLow, dueTomorrow, dueThisWeek, dueNextWeek
+            overdue, dueYesterday, dueTodayNormal, dueTodayHigh, dueTodayLow, dueTomorrow, dueThisWeek, dueNextWeek,
+            trashedTwoSecondsAgo, trashedSecondAgo, trashedNow
         ]
 
         let expectationMap: [Tab: IdentifiedArrayOf<ToDo>] = [
@@ -306,7 +309,8 @@ extension TodoListTabReducerTests {
                 overdue, dueYesterday, dueTodayHigh, dueTodayNormal, dueTodayLow, dueTomorrow, dueThisWeek, dueNextWeek,
                 .highPriority, .normalPriority, .lowPriority
             ],
-            .today: [overdue, dueYesterday, dueTodayHigh, dueTodayNormal, dueTodayLow]
+            .today: [overdue, dueYesterday, dueTodayHigh, dueTodayNormal, dueTodayLow],
+            .trashBin: [trashedNow, trashedSecondAgo, trashedTwoSecondsAgo]
         ]
 
         for (tab, expectedDisplayedTodos) in expectationMap {

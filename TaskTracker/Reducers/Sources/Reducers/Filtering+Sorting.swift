@@ -13,13 +13,15 @@ extension Tab {
     ) -> IdentifiedArrayOf<ToDo> {
         switch self {
         case .all:
-            return allTodos
+            return allTodos.filter { $0.trashedAt == nil }
         case .pending:
-            return allTodos.filter { $0.completedAt == nil }
+            return allTodos.filter { $0.trashedAt == nil && $0.completedAt == nil }
         case .completed:
-            return allTodos.filter { $0.completedAt != nil }
+            return allTodos.filter { $0.trashedAt == nil && $0.completedAt != nil }
         case .today:
-            return allTodos.filter { $0.isListedFor(today: today, by: calendar) }
+            return allTodos.filter { $0.trashedAt == nil && $0.isListedFor(today: today, by: calendar) }
+        case .trashBin:
+            return allTodos.filter { $0.trashedAt != nil }
         }
     }
 }
@@ -67,8 +69,12 @@ extension ToDo: @retroactive Comparable {
         dueDate ?? Date.distantFuture
     }
 
+    private var trashedAtSortOrder: Date {
+        trashedAt ?? Date.distantFuture
+    }
+
     public static func < (lhs: ToDo, rhs: ToDo) -> Bool {
-        (lhs.completedAtSortOrder, rhs.dueDateSortOrder, lhs.priority)
-        < (rhs.completedAtSortOrder, lhs.dueDateSortOrder, rhs.priority)
+        (lhs.trashedAtSortOrder, lhs.completedAtSortOrder, rhs.dueDateSortOrder, lhs.priority)
+        < (rhs.trashedAtSortOrder, rhs.completedAtSortOrder, lhs.dueDateSortOrder, rhs.priority)
     }
 }
