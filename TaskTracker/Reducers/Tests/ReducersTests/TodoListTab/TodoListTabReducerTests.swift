@@ -136,7 +136,8 @@ final class TodoListTabReducerTests: XCTestCase {
 
     @MainActor func test_whenMoveToTrashIsRequested_thenTodoIsMarkedAsTrashed() async {
         let now = Date.now
-        let firstTodo = ToDo.mock(title: "First todo")
+        let id = ToDo.ID(UUID(0))
+        let firstTodo = ToDo.mock(id: id, title: "First todo")
         let secondTodo = ToDo.mock(title: "Second todo")
 
         @Shared(.todoStorage) var todos = [
@@ -153,9 +154,8 @@ final class TodoListTabReducerTests: XCTestCase {
         store.exhaustivity = .off
         await store.send(.onAppearAction)
 
-        await store.send(.moveToTrashAction(IndexSet(integer: 0))) {
-            $0.storedTodos[0].trashedAt = now
-            $0.storedTodos[1].trashedAt = nil
+        await store.send(.moveToTrashAction(id)) {
+            $0.storedTodos[id: id]?.trashedAt = now
         }
     }
 
@@ -163,7 +163,8 @@ final class TodoListTabReducerTests: XCTestCase {
 
     @MainActor func test_whenMoveFromTrashIsRequested_thenTodoTrashedTimestampIsCleared() async {
         let now = Date.now
-        let firstTodo = ToDo.mock(title: "First todo", trashedAt: now)
+        let id = ToDo.ID(UUID(0))
+        let firstTodo = ToDo.mock(id: id, title: "First todo", trashedAt: now)
         let secondTodo = ToDo.mock(title: "Second todo", trashedAt: now)
 
         @Shared(.todoStorage) var todos = [
@@ -180,16 +181,16 @@ final class TodoListTabReducerTests: XCTestCase {
         store.exhaustivity = .off
         await store.send(.onAppearAction)
 
-        await store.send(.moveFromTrashAction(IndexSet(integer: 0))) {
-            $0.storedTodos[0].trashedAt = nil
-            $0.storedTodos[1].trashedAt = now
+        await store.send(.moveFromTrashAction(id)) {
+            $0.storedTodos[id: id]?.trashedAt = nil
         }
     }
 
     // MARK: - Deleting
 
     @MainActor func test_whenDeleteIsRequested_thenTodoIsRemoved() async {
-        let firstTodo = ToDo.mock(title: "First todo")
+        let id = ToDo.ID(UUID(0))
+        let firstTodo = ToDo.mock(id: id, title: "First todo")
         let secondTodo = ToDo.mock(title: "Second todo")
 
         @Shared(.todoStorage) var todos = [
@@ -206,8 +207,8 @@ final class TodoListTabReducerTests: XCTestCase {
         store.exhaustivity = .off
         await store.send(.onAppearAction)
 
-        await store.send(.deleteAction(IndexSet(integer: 0))) {
-            $0.displayedTodos = [secondTodo]
+        await store.send(.deleteAction(id)) {
+            $0.storedTodos = [secondTodo]
         }
     }
 

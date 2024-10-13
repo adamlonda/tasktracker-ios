@@ -58,29 +58,45 @@ struct TodoListTabView: View {
 
     // MARK: - List
 
-    #warning("TODO: Figure out onDelete for trash bin 🚧")
     @ViewBuilder var listView: some View {
         List {
             if store.state.tab == .trashBin {
-                forEach
+                forEachTrashBin
             } else {
-                forEachOnDelete
+                forEachTodo
             }
         }
     }
 
-    @ViewBuilder var forEachOnDelete: some View {
+    @ViewBuilder var forEachTodo: some View {
         ForEach(store.scope(state: \.displayedTodos, action: \.todoItemAction)) { todoItemStore in
             TodoItem(store: todoItemStore)
-        }
-        .onDelete { indexSet in
-            store.send(.moveToTrashAction(indexSet))
+                .contextMenu {
+                    Button(role: .destructive) {
+                        store.send(.moveToTrashAction(todoItemStore.id))
+                    } label: {
+                        Label("Move to trash", systemImage: "trash")
+                    }
+                }
         }
     }
 
-    @ViewBuilder var forEach: some View {
+    @ViewBuilder var forEachTrashBin: some View {
         ForEach(store.scope(state: \.displayedTodos, action: \.todoItemAction)) { todoItemStore in
             TodoItem(store: todoItemStore)
+                .contextMenu {
+                    Button {
+                        store.send(.moveFromTrashAction(todoItemStore.id))
+                    } label: {
+                        Label("Restore", systemImage: "arrow.uturn.backward")
+                    }
+                    Button(role: .destructive) {
+                        #warning("TODO: Figure out strong feedback ‼️")
+                        store.send(.deleteAction(todoItemStore.id))
+                    } label: {
+                        Label("Delete permanently", systemImage: "xmark.bin")
+                    }
+                }
         }
     }
 }

@@ -22,9 +22,9 @@ import Models
 
     public enum Action: Equatable {
         case addTodoTapAction
-        case moveToTrashAction(IndexSet)
-        case moveFromTrashAction(IndexSet)
-        case deleteAction(IndexSet)
+        case moveToTrashAction(ToDo.ID)
+        case moveFromTrashAction(ToDo.ID)
+        case deleteAction(ToDo.ID)
         case todoFormAction(PresentationAction<TodoFormReducer.Action>)
         case todoItemAction(IdentifiedActionOf<TodoItemReducer>)
         case delegate(Delegate)
@@ -44,12 +44,12 @@ import Models
             switch action {
             case .addTodoTapAction:
                 return reduceAddTodoTap(state: &state)
-            case .moveToTrashAction(let indexSet):
-                return reduceMoveToTrash(state: &state, indexSet: indexSet)
-            case .moveFromTrashAction(let indexSet):
-                return reduceMoveFromTrash(state: &state, indexSet: indexSet)
-            case .deleteAction(let indexSet):
-                return reduceDelete(state: &state, indexSet: indexSet)
+            case .moveToTrashAction(let todoID):
+                return reduceMoveToTrash(state: &state, todoID: todoID)
+            case .moveFromTrashAction(let todoID):
+                return reduceMoveFromTrash(state: &state, todoID: todoID)
+            case .deleteAction(let todoID):
+                return reduceDelete(state: &state, todoID: todoID)
             case .todoFormAction(let formAction):
                 return reduceSaveTodoForm(state: &state, formAction: formAction)
             case .todoItemAction(let action):
@@ -76,26 +76,20 @@ import Models
         return .none
     }
 
-    private func reduceMoveToTrash(state: inout State, indexSet: IndexSet) -> Effect<Action> {
-        for index in indexSet {
-            state.storedTodos[id: state.displayedTodos[index].id]?.trashedAt = date.now
-        }
+    private func reduceMoveToTrash(state: inout State, todoID: ToDo.ID) -> Effect<Action> {
+        state.storedTodos[id: todoID]?.trashedAt = date.now
         updateDisplayedTodos(on: &state)
         return .none
     }
 
-    private func reduceMoveFromTrash(state: inout State, indexSet: IndexSet) -> Effect<Action> {
-        for index in indexSet {
-            state.storedTodos[id: state.displayedTodos[index].id]?.trashedAt = nil
-        }
+    private func reduceMoveFromTrash(state: inout State, todoID: ToDo.ID) -> Effect<Action> {
+        state.storedTodos[id: todoID]?.trashedAt = nil
         updateDisplayedTodos(on: &state)
         return .none
     }
 
-    private func reduceDelete(state: inout State, indexSet: IndexSet) -> Effect<Action> {
-        for index in indexSet {
-            state.storedTodos.remove(id: state.displayedTodos[index].id)
-        }
+    private func reduceDelete(state: inout State, todoID: ToDo.ID) -> Effect<Action> {
+        state.storedTodos.remove(id: todoID)
         updateDisplayedTodos(on: &state)
         return .none
     }
