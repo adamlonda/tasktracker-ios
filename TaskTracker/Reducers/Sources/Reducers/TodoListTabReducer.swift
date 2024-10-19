@@ -4,11 +4,16 @@ import Models
 
 @Reducer public struct TodoListTabReducer {
 
+    @CasePathable public enum Alert: Sendable, Equatable {
+        case confirmPermanentDeletion(ToDo.ID)
+    }
+
     @ObservableState public struct State: Equatable {
         @Shared(.todoStorage) public var storedTodos: IdentifiedArrayOf<ToDo> = []
         public var displayedTodos: IdentifiedArrayOf<TodoItemReducer.State> = []
 
         @Presents public var todoForm: TodoFormReducer.State?
+        @Presents public var alert: AlertState<Alert>?
         public let tab: Tab
 
         public init(_ tab: Tab) {
@@ -26,6 +31,7 @@ import Models
         case moveFromTrashAction(ToDo.ID)
         case deleteAction(ToDo.ID)
         case todoFormAction(PresentationAction<TodoFormReducer.Action>)
+        case alertAction(PresentationAction<Alert>)
         case todoItemAction(IdentifiedActionOf<TodoItemReducer>)
         case delegate(Delegate)
         case onAppearAction
@@ -52,6 +58,8 @@ import Models
                 return reduceDelete(state: &state, todoID: todoID)
             case .todoFormAction(let formAction):
                 return reduceSaveTodoForm(state: &state, formAction: formAction)
+            case .alertAction(let alert):
+                return reduceAlert(state: &state, alert: alert)
             case .todoItemAction(let action):
                 return reduceTodoItem(state: &state, action: action)
             case .delegate:
@@ -63,6 +71,7 @@ import Models
         .ifLet(\.$todoForm, action: \.todoFormAction) {
             TodoFormReducer()
         }
+        .ifLet(\.$alert, action: \.alertAction)
         .forEach(\.displayedTodos, action: \.todoItemAction) {
             TodoItemReducer()
                 .dependency(\.date, date)
@@ -89,8 +98,7 @@ import Models
     }
 
     private func reduceDelete(state: inout State, todoID: ToDo.ID) -> Effect<Action> {
-        state.storedTodos.remove(id: todoID)
-        updateDisplayedTodos(on: &state)
+        state.alert = .deletePermanently(todoID)
         return .none
     }
 
@@ -125,6 +133,14 @@ import Models
         }
     }
 
+    private func reduceAlert(
+        state: inout State,
+        alert: PresentationAction<TodoListTabReducer.Alert>
+    ) -> Effect<Action> {
+        #warning("TODO: Handle confirmation 🚧")
+        return .none
+    }
+
     private func reduceTodoItem(state: inout State, action: IdentifiedActionOf<TodoItemReducer>) -> Effect<Action> {
         switch action {
         case .element(let id, let elementAction):
@@ -150,5 +166,26 @@ import Models
         var filtered = state.tab.filteredTodos(from: state.storedTodos, for: now, calendar: calendar)
         filtered.sort(by: >)
         state.displayedTodos = filtered
+    }
+}
+
+// MARK: - Alert
+
+#warning("TODO: Inject strings from UI level ❔")
+extension AlertState where Action == TodoListTabReducer.Alert {
+
+    static func deletePermanently(_ todoID: ToDo.ID) -> Self {
+        Self {
+            TextState("Delete permanently")
+        } actions: {
+            ButtonState(role: .destructive, action: .confirmPermanentDeletion(todoID)) {
+                TextState("Yes, I'm sure")
+            }
+            ButtonState(role: .cancel) {
+                TextState("Nevermind")
+            }
+        } message: {
+            TextState("Do you really want to delete this item permanently?")
+        }
     }
 }

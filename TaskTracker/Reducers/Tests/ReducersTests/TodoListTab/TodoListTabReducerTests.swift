@@ -186,28 +186,53 @@ final class TodoListTabReducerTests: XCTestCase {
         }
     }
 
-    // MARK: - Deleting
+    // MARK: - Deleting Permanently
 
-    @MainActor func test_whenDeleteIsRequested_thenTodoIsRemoved() async {
+    @MainActor func test_whenDeleteActionIsRequested_thenWarningAlertShouldBePresented() async {
+        let now = Date.now
         let id = ToDo.ID(UUID(0))
-        let firstTodo = ToDo.mock(id: id, title: "First todo")
-        let secondTodo = ToDo.mock(title: "Second todo")
+        let firstTodo = ToDo.mock(id: id, title: "First todo", trashedAt: now)
+
+        @Shared(.todoStorage) var todos = [
+            firstTodo
+        ]
+
+        let store = TestStore(initialState: TodoListTabReducer.State(.trashBin)) {
+            TodoListTabReducer()
+        } withDependencies: {
+            $0.calendar = .current
+            $0.date = .constant(now)
+        }
+        store.exhaustivity = .off
+        await store.send(.onAppearAction)
+
+        await store.send(.deleteAction(id)) {
+            $0.alert = .deletePermanently(id)
+        }
+    }
+
+    @MainActor func test_whenDeletionIsConfirmed_thenTodoIsRemoved() async {
+        let now = Date.now
+        let id = ToDo.ID(UUID(0))
+        let firstTodo = ToDo.mock(id: id, title: "First todo", trashedAt: now)
+        let secondTodo = ToDo.mock(title: "Second todo", trashedAt: now)
 
         @Shared(.todoStorage) var todos = [
             firstTodo,
             secondTodo
         ]
 
-        let store = TestStore(initialState: TodoListTabReducer.State(.pending)) {
+        let store = TestStore(initialState: TodoListTabReducer.State(.trashBin)) {
             TodoListTabReducer()
         } withDependencies: {
             $0.calendar = .current
-            $0.date = .constant(.now)
+            $0.date = .constant(now)
         }
         store.exhaustivity = .off
         await store.send(.onAppearAction)
 
-        await store.send(.deleteAction(id)) {
+        await store.send(.deleteAction(id))
+        await store.send(.alertAction(.presented(.confirmPermanentDeletion(id)))) {
             $0.storedTodos = [secondTodo]
         }
     }

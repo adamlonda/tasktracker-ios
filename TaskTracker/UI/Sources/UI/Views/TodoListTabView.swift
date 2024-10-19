@@ -13,6 +13,7 @@ struct TodoListTabView: View {
         NavigationView {
             content
                 .onAppear { store.send(.onAppearAction) }
+                .alert($store.scope(state: \.alert, action: \.alertAction))
                 .sheet(
                     item: $store.scope(state: \.todoForm, action: \.todoFormAction)
                 ) { todoFormStore in
@@ -91,7 +92,6 @@ struct TodoListTabView: View {
                         Label("Restore", systemImage: "arrow.uturn.backward")
                     }
                     Button(role: .destructive) {
-                        #warning("TODO: Figure out strong feedback ‼️")
                         store.send(.deleteAction(todoItemStore.id))
                     } label: {
                         Label("Delete permanently", systemImage: "xmark.bin")
