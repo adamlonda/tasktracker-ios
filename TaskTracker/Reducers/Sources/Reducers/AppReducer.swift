@@ -12,6 +12,7 @@ import Storage
         public var pendingTab = TodoListTabReducer.State(.pending)
         public var completedTab = TodoListTabReducer.State(.completed)
         public var allTab = TodoListTabReducer.State(.all)
+        public var trashBinTab = TodoListTabReducer.State(.trashBin)
 
         public var selectedTab: Tab = .today
         @Presents public var todoForm: TodoFormReducer.State?
@@ -26,6 +27,7 @@ import Storage
         case pendingTabAction(TodoListTabReducer.Action)
         case completedTabAction(TodoListTabReducer.Action)
         case allTabAction(TodoListTabReducer.Action)
+        case trashBinTabAction(TodoListTabReducer.Action)
         case todoFormAction(PresentationAction<TodoFormReducer.Action>)
     }
 
@@ -52,6 +54,8 @@ import Storage
                 return reduceSwitchToPendingTab(state: &state, tabAction: tabAction)
             case .allTabAction:
                 return .none
+            case .trashBinTabAction:
+                return .none
             case .todoFormAction(let formAction):
                 return reduceSaveTodoForm(state: &state, formAction: formAction)
             }
@@ -69,6 +73,9 @@ import Storage
             TodoListTabReducer()
         }
         Scope(state: \.allTab, action: \.allTabAction) {
+            TodoListTabReducer()
+        }
+        Scope(state: \.trashBinTab, action: \.trashBinTabAction) {
             TodoListTabReducer()
         }
     }

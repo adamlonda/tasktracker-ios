@@ -47,7 +47,8 @@ extension ToDo {
         completedAt: Date? = nil,
         priority: Priority = .normal,
         dueDate: Date? = nil,
-        recurrence: Recurrence = .never
+        recurrence: Recurrence = .never,
+        trashedAt: Date? = nil
     ) -> Self {
         .init(
             id: id,
@@ -56,7 +57,8 @@ extension ToDo {
             completedAt: completedAt,
             priority: priority,
             dueDate: dueDate,
-            recurrence: recurrence
+            recurrence: recurrence,
+            trashedAt: trashedAt
         )
     }
 }

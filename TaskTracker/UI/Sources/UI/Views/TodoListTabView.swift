@@ -13,6 +13,7 @@ struct TodoListTabView: View {
         NavigationView {
             content
                 .onAppear { store.send(.onAppearAction) }
+                .alert($store.scope(state: \.alert, action: \.alertAction))
                 .sheet(
                     item: $store.scope(state: \.todoForm, action: \.todoFormAction)
                 ) { todoFormStore in
@@ -60,12 +61,42 @@ struct TodoListTabView: View {
 
     @ViewBuilder var listView: some View {
         List {
-            ForEach(store.scope(state: \.displayedTodos, action: \.todoItemAction)) { todoItemStore in
-                TodoItem(store: todoItemStore)
+            if store.state.tab == .trashBin {
+                forEachTrashBin
+            } else {
+                forEachTodo
             }
-            .onDelete { indexSet in
-                store.send(.deleteAction(indexSet))
-            }
+        }
+    }
+
+    @ViewBuilder var forEachTodo: some View {
+        ForEach(store.scope(state: \.displayedTodos, action: \.todoItemAction)) { todoItemStore in
+            TodoItem(store: todoItemStore)
+                .contextMenu {
+                    Button(role: .destructive) {
+                        store.send(.moveToTrashAction(todoItemStore.id))
+                    } label: {
+                        Label("Move to trash", systemImage: "trash")
+                    }
+                }
+        }
+    }
+
+    @ViewBuilder var forEachTrashBin: some View {
+        ForEach(store.scope(state: \.displayedTodos, action: \.todoItemAction)) { todoItemStore in
+            TodoItem(store: todoItemStore)
+                .contextMenu {
+                    Button {
+                        store.send(.moveFromTrashAction(todoItemStore.id))
+                    } label: {
+                        Label("Restore", systemImage: "arrow.uturn.backward")
+                    }
+                    Button(role: .destructive) {
+                        store.send(.deleteAction(todoItemStore.id))
+                    } label: {
+                        Label("Delete permanently", systemImage: "xmark.bin")
+                    }
+                }
         }
     }
 }
@@ -83,6 +114,8 @@ extension Models.Tab {
             return "To do & Done"
         case .today:
             return "To do today"
+        case .trashBin:
+            return "Trash bin"
         }
     }
 
@@ -93,22 +126,26 @@ extension Models.Tab {
         case .completed:
             return "tray.fill"
         case .all:
-            return ""
+            return "tray.2.fill"
         case .today:
             return "calendar.badge.checkmark"
+        case .trashBin:
+            return "trash.slash.fill"
         }
     }
 
-    fileprivate var emptyImageColor: Color {
+    fileprivate var emptyImageColor: Color? {
         switch self {
         case .pending:
             return .green
         case .completed:
-            return .blue
+            return .accentColor
         case .all:
-            return .clear
+            return .accentColor
         case .today:
             return .green
+        case .trashBin:
+            return .primary
         }
     }
 
@@ -119,9 +156,11 @@ extension Models.Tab {
         case .completed:
             return "Seems like nothing is done, yet."
         case .all:
-            return ""
+            return "No tasks to display here, right now."
         case .today:
             return "Seems like nothing is scheduled for today, yet."
+        case .trashBin:
+            return "Seems like trash bin is empty, for now."
         }
     }
 }
@@ -210,6 +249,42 @@ extension Models.Tab {
     return TodoListTabView(
         store: Store(
             initialState: TodoListTabReducer.State(.all)
+        ) {
+            TodoListTabReducer()
+        }
+    )
+}
+
+#Preview("Empty To Do & Done") {
+    TodoListTabView(
+        store: Store(
+            initialState: TodoListTabReducer.State(.all)
+        ) {
+            TodoListTabReducer()
+        }
+    )
+}
+
+#Preview("Bin") {
+    let now = Date.now
+    @Shared(.todoStorage) var todos = [
+        .mock(title: "Two seconds ago", trashedAt: .twoSecondsAgo(from: now)),
+        .mock(title: "Second ago", trashedAt: .secondAgo(from: now)),
+        .mock(title: "Now", trashedAt: now)
+    ]
+    return TodoListTabView(
+        store: Store(
+            initialState: TodoListTabReducer.State(.trashBin)
+        ) {
+            TodoListTabReducer()
+        }
+    )
+}
+
+#Preview("Empty Bin") {
+    TodoListTabView(
+        store: Store(
+            initialState: TodoListTabReducer.State(.trashBin)
         ) {
             TodoListTabReducer()
         }

@@ -11,6 +11,7 @@ import Tagged
     public var priority: Priority
     public var dueDate: Date?
     public var recurrence: Recurrence
+    public var trashedAt: Date?
 
     public init(
         id: Tagged<Self, UUID>,
@@ -18,7 +19,8 @@ import Tagged
         completedAt: Date? = nil,
         priority: Priority = .normal,
         dueDate: Date? = nil,
-        recurrence: Recurrence = .never
+        recurrence: Recurrence = .never,
+        trashedAt: Date? = nil
     ) {
         self.id = id
         self.title = title
@@ -27,5 +29,6 @@ import Tagged
         self.priority = priority
         self.dueDate = dueDate
         self.recurrence = recurrence
+        self.trashedAt = trashedAt
     }
 }

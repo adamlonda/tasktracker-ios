@@ -58,6 +58,7 @@ public struct AppView: View {
                 thingsToDoTab
                 completedTab
                 allTodosTab
+                trashBinTab
             }
         }
     }
@@ -104,6 +105,15 @@ public struct AppView: View {
                 Text("All")
             }
             .tag(Tab.all)
+    }
+
+    @ViewBuilder var trashBinTab: some View {
+        TodoListTabView(store: store.scope(state: \.trashBinTab, action: \.trashBinTabAction))
+            .tabItem {
+                Image(systemName: "trash")
+                Text("Trash")
+            }
+            .tag(Tab.trashBin)
     }
 
     // MARK: - Init
