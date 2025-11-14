@@ -24,7 +24,7 @@ extension TodoListTabReducerTests {
         let trashedSecondAgo = ToDo.mock(trashedAt: .secondAgo(from: now))
         let trashedNow = ToDo.mock(trashedAt: now)
 
-        @Shared(.todoStorage) var todos = [
+        @Shared(.todoStorage) var todos: IdentifiedArrayOf<ToDo> = [
             .lowPriority, .normalPriority, .highPriority, completedTwoSecondsAgo, completedSecondAgo, completedNow,
             overdue, dueYesterday, dueTodayNormal, dueTodayHigh, dueTodayLow, dueTomorrow, dueThisWeek, dueNextWeek,
             trashedTwoSecondsAgo, trashedSecondAgo, trashedNow
@@ -68,7 +68,7 @@ extension TodoListTabReducerTests {
         let first = ToDo.mock(title: "First todo")
         let second = ToDo.mock(id: secondID, title: "Second todo")
 
-        @Shared(.todoStorage) var todos = [
+        @Shared(.todoStorage) var todos: IdentifiedArrayOf<ToDo> = [
             first,
             second
         ]
@@ -80,7 +80,9 @@ extension TodoListTabReducerTests {
         }
 
         await MainActor.run {
-            todos[id: secondID] = .mock(id: secondID, title: "Second todo", completedAt: .now)
+            $todos.withLock { todos in
+                todos[id: secondID] = .mock(id: secondID, title: "Second todo", completedAt: .now)
+            }
         }
         await store.send(.onAppearAction) {
             $0.displayedTodos = [first]

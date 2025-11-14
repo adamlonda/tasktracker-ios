@@ -168,125 +168,170 @@ extension Models.Tab {
 // MARK: - Previews
 
 #Preview("Today") {
-    @Shared(.todoStorage) var todos = [
-        .mock(title: "First todo", dueDate: .now),
-        .mock(title: "Second todo", dueDate: .now)
-    ]
-    return TodoListTabView(
-        store: Store(
-            initialState: TodoListTabReducer.State(.today)
-        ) {
-            TodoListTabReducer()
-        }
-    )
+    WithInMemory { userDefaults in
+        @Shared(.todoStorage(store: userDefaults)) var todos: IdentifiedArrayOf<ToDo> = [
+            .mock(title: "First todo", dueDate: .now),
+            .mock(title: "Second todo", dueDate: .now)
+        ]
+        TodoListTabView(
+            store: Store(
+                initialState: TodoListTabReducer.State(.today)
+            ) {
+                TodoListTabReducer()
+            } withDependencies: {
+                $0.defaultAppStorage = userDefaults
+            }
+        )
+    }
 }
 
 #Preview("Empty Today") {
-    return TodoListTabView(
-        store: Store(
-            initialState: TodoListTabReducer.State(.today)
-        ) {
-            TodoListTabReducer()
-        }
-    )
+    WithInMemory { userDefaults in
+        @Shared(.todoStorage(store: userDefaults)) var todos: IdentifiedArrayOf<ToDo> = []
+        TodoListTabView(
+            store: Store(
+                initialState: TodoListTabReducer.State(.today)
+            ) {
+                TodoListTabReducer()
+            } withDependencies: {
+                $0.defaultAppStorage = userDefaults
+            }
+        )
+    }
 }
 
 #Preview("To Do") {
-    @Shared(.todoStorage) var todos = [
-        .mock(title: "First todo"),
-        .mock(title: "Third todo")
-    ]
-    return TodoListTabView(
-        store: Store(
-            initialState: TodoListTabReducer.State(.pending)
-        ) {
-            TodoListTabReducer()
-        }
-    )
+    WithInMemory { userDefaults in
+        @Shared(.todoStorage(store: userDefaults)) var todos: IdentifiedArrayOf<ToDo> = [
+            .mock(title: "First todo"),
+            .mock(title: "Second todo")
+        ]
+        TodoListTabView(
+            store: Store(
+                initialState: TodoListTabReducer.State(.pending)
+            ) {
+                TodoListTabReducer()
+            } withDependencies: {
+                $0.defaultAppStorage = userDefaults
+            }
+        )
+    }
 }
 
 #Preview("Empty To Do") {
-    TodoListTabView(
-        store: Store(
-            initialState: TodoListTabReducer.State(.pending)
-        ) {
-            TodoListTabReducer()
-        }
-    )
+    WithInMemory { userDefaults in
+        @Shared(.todoStorage(store: userDefaults)) var todos: IdentifiedArrayOf<ToDo> = []
+        TodoListTabView(
+            store: Store(
+                initialState: TodoListTabReducer.State(.pending)
+            ) {
+                TodoListTabReducer()
+            } withDependencies: {
+                $0.defaultAppStorage = userDefaults
+            }
+        )
+    }
 }
 
 #Preview("Done") {
-    @Shared(.todoStorage) var todos = [
-        .mock(title: "Second todo", completedAt: .now),
-        .mock(title: "Fourth todo", completedAt: .now)
-    ]
-    return TodoListTabView(
-        store: Store(
-            initialState: TodoListTabReducer.State(.completed)
-        ) {
-            TodoListTabReducer()
-        }
-    )
+    WithInMemory { userDefaults in
+        @Shared(.todoStorage(store: userDefaults)) var todos: IdentifiedArrayOf<ToDo> = [
+            .mock(title: "Second todo", completedAt: .now),
+            .mock(title: "Fourth todo", completedAt: .now)
+        ]
+        TodoListTabView(
+            store: Store(
+                initialState: TodoListTabReducer.State(.completed)
+            ) {
+                TodoListTabReducer()
+            } withDependencies: {
+                $0.defaultAppStorage = userDefaults
+            }
+        )
+    }
 }
 
 #Preview("Empty Done") {
-    TodoListTabView(
-        store: Store(
-            initialState: TodoListTabReducer.State(.completed)
-        ) {
-            TodoListTabReducer()
-        }
-    )
+    WithInMemory { userDefaults in
+        @Shared(.todoStorage(store: userDefaults)) var todos: IdentifiedArrayOf<ToDo> = []
+        TodoListTabView(
+            store: Store(
+                initialState: TodoListTabReducer.State(.completed)
+            ) {
+                TodoListTabReducer()
+            } withDependencies: {
+                $0.defaultAppStorage = userDefaults
+            }
+        )
+    }
 }
 
 #Preview("To Do & Done") {
-    @Shared(.todoStorage) var todos = [
-        .mock(title: "First todo"),
-        .mock(title: "Second todo", completedAt: .now),
-        .mock(title: "Third todo"),
-        .mock(title: "Fourth todo", completedAt: .now)
-    ]
-    return TodoListTabView(
-        store: Store(
-            initialState: TodoListTabReducer.State(.all)
-        ) {
-            TodoListTabReducer()
-        }
-    )
+    WithInMemory { userDefaults in
+        @Shared(.todoStorage(store: userDefaults)) var todos: IdentifiedArrayOf<ToDo> = [
+            .mock(title: "First todo"),
+            .mock(title: "Second todo", completedAt: .now),
+            .mock(title: "Third todo"),
+            .mock(title: "Fourth todo", completedAt: .now)
+        ]
+        TodoListTabView(
+            store: Store(
+                initialState: TodoListTabReducer.State(.all)
+            ) {
+                TodoListTabReducer()
+            } withDependencies: {
+                $0.defaultAppStorage = userDefaults
+            }
+        )
+    }
 }
 
 #Preview("Empty To Do & Done") {
-    TodoListTabView(
-        store: Store(
-            initialState: TodoListTabReducer.State(.all)
-        ) {
-            TodoListTabReducer()
-        }
-    )
+    WithInMemory { userDefaults in
+        @Shared(.todoStorage(store: userDefaults)) var todos: IdentifiedArrayOf<ToDo> = []
+        TodoListTabView(
+            store: Store(
+                initialState: TodoListTabReducer.State(.all)
+            ) {
+                TodoListTabReducer()
+            } withDependencies: {
+                $0.defaultAppStorage = userDefaults
+            }
+        )
+    }
 }
 
 #Preview("Bin") {
-    let now = Date.now
-    @Shared(.todoStorage) var todos = [
-        .mock(title: "Two seconds ago", trashedAt: .twoSecondsAgo(from: now)),
-        .mock(title: "Second ago", trashedAt: .secondAgo(from: now)),
-        .mock(title: "Now", trashedAt: now)
-    ]
-    return TodoListTabView(
-        store: Store(
-            initialState: TodoListTabReducer.State(.trashBin)
-        ) {
-            TodoListTabReducer()
-        }
-    )
+    WithInMemory { userDefaults in
+        let now = Date.now
+        @Shared(.todoStorage(store: userDefaults)) var todos: IdentifiedArrayOf<ToDo> = [
+            .mock(title: "Two seconds ago", trashedAt: .twoSecondsAgo(from: now)),
+            .mock(title: "Second ago", trashedAt: .secondAgo(from: now)),
+            .mock(title: "Now", trashedAt: now)
+        ]
+        TodoListTabView(
+            store: Store(
+                initialState: TodoListTabReducer.State(.trashBin)
+            ) {
+                TodoListTabReducer()
+            } withDependencies: {
+                $0.defaultAppStorage = userDefaults
+            }
+        )
+    }
 }
 
 #Preview("Empty Bin") {
-    TodoListTabView(
-        store: Store(
-            initialState: TodoListTabReducer.State(.trashBin)
-        ) {
-            TodoListTabReducer()
-        }
-    )
+    WithInMemory { userDefaults in
+        @Shared(.todoStorage(store: userDefaults)) var todos: IdentifiedArrayOf<ToDo> = []
+        TodoListTabView(
+            store: Store(
+                initialState: TodoListTabReducer.State(.trashBin)
+            ) {
+                TodoListTabReducer()
+            } withDependencies: {
+                $0.defaultAppStorage = userDefaults
+            }
+        )
+    }
 }

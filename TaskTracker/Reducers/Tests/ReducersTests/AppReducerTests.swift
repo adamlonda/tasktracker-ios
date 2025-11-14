@@ -43,6 +43,7 @@ final class AppReducerTests: XCTestCase {
                 AppReducer()
             } withDependencies: {
                 $0.uuid = .incrementing
+                $0.date = .constant(.now)
             }
             store.exhaustivity = .off
 
@@ -116,7 +117,9 @@ final class AppReducerTests: XCTestCase {
             id: expectedID, title: expectedTitle, priority: expectedPriority, dueDate: expectedDueDate
         )
         await store.send(.todoFormAction(.presented(.delegate(.save)))) {
-            $0.storedTodos = [expectedTodo]
+            $0.$storedTodos.withLock { storedTodos in
+                storedTodos = [expectedTodo]
+            }
         }
     }
 

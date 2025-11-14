@@ -111,7 +111,9 @@ import Storage
         }
         let trimmedDueDate = todoToSave.dueDate?.trim(with: calendar)
         todoToSave.dueDate = trimmedDueDate
-        state.storedTodos[id: todoToSave.id] = todoToSave
+        state.$storedTodos.withLock { todos in
+            todos[id: todoToSave.id] = todoToSave
+        }
 
         state.todoForm = nil
         state.selectedTab = todoToSave.isListedFor(today: date.now, by: calendar) ? .today : .pending

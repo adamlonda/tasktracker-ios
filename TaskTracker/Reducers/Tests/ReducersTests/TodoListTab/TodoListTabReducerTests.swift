@@ -12,6 +12,7 @@ final class TodoListTabReducerTests: XCTestCase {
             TodoListTabReducer()
         } withDependencies: {
             $0.uuid = .incrementing
+            $0.date = .constant(.now)
         }
 
         await store.send(.addTodoTapAction) {
@@ -140,7 +141,7 @@ final class TodoListTabReducerTests: XCTestCase {
         let firstTodo = ToDo.mock(id: id, title: "First todo")
         let secondTodo = ToDo.mock(title: "Second todo")
 
-        @Shared(.todoStorage) var todos = [
+        @Shared(.todoStorage) var todos: IdentifiedArrayOf<ToDo> = [
             firstTodo,
             secondTodo
         ]
@@ -155,7 +156,9 @@ final class TodoListTabReducerTests: XCTestCase {
         await store.send(.onAppearAction)
 
         await store.send(.moveToTrashAction(id)) {
-            $0.storedTodos[id: id]?.trashedAt = now
+            $0.$storedTodos.withLock { storedTodos in
+                storedTodos[id: id]?.trashedAt = now
+            }
         }
     }
 
@@ -167,7 +170,7 @@ final class TodoListTabReducerTests: XCTestCase {
         let firstTodo = ToDo.mock(id: id, title: "First todo", trashedAt: now)
         let secondTodo = ToDo.mock(title: "Second todo", trashedAt: now)
 
-        @Shared(.todoStorage) var todos = [
+        @Shared(.todoStorage) var todos: IdentifiedArrayOf<ToDo> = [
             firstTodo,
             secondTodo
         ]
@@ -182,7 +185,9 @@ final class TodoListTabReducerTests: XCTestCase {
         await store.send(.onAppearAction)
 
         await store.send(.moveFromTrashAction(id)) {
-            $0.storedTodos[id: id]?.trashedAt = nil
+            $0.$storedTodos.withLock { storedTodos in
+                storedTodos[id: id]?.trashedAt = nil
+            }
         }
     }
 
@@ -193,7 +198,7 @@ final class TodoListTabReducerTests: XCTestCase {
         let id = ToDo.ID(UUID(0))
         let firstTodo = ToDo.mock(id: id, title: "First todo", trashedAt: now)
 
-        @Shared(.todoStorage) var todos = [
+        @Shared(.todoStorage) var todos: IdentifiedArrayOf<ToDo> = [
             firstTodo
         ]
 
@@ -217,7 +222,7 @@ final class TodoListTabReducerTests: XCTestCase {
         let firstTodo = ToDo.mock(id: id, title: "First todo", trashedAt: now)
         let secondTodo = ToDo.mock(title: "Second todo", trashedAt: now)
 
-        @Shared(.todoStorage) var todos = [
+        @Shared(.todoStorage) var todos: IdentifiedArrayOf<ToDo> = [
             firstTodo,
             secondTodo
         ]
@@ -233,7 +238,9 @@ final class TodoListTabReducerTests: XCTestCase {
 
         await store.send(.deleteAction(id))
         await store.send(.alertAction(.presented(.confirmPermanentDeletion(id)))) {
-            $0.storedTodos = [secondTodo]
+            $0.$storedTodos.withLock { storedTodos in
+                storedTodos = [secondTodo]
+            }
         }
     }
 
@@ -247,7 +254,7 @@ final class TodoListTabReducerTests: XCTestCase {
         let given = ToDo.mock(id: id, title: title)
         let expected = ToDo.mock(id: id, title: title, completedAt: now)
 
-        @Shared(.todoStorage) var todos = [given]
+        @Shared(.todoStorage) var todos: IdentifiedArrayOf<ToDo> = [given]
         let store = TestStore(initialState: TodoListTabReducer.State(.all)) {
             TodoListTabReducer()
         } withDependencies: {
@@ -259,7 +266,9 @@ final class TodoListTabReducerTests: XCTestCase {
 
         await store.send(.todoItemAction(.element(id: id, action: .completionAction))) {
             $0.displayedTodos = [expected]
-            $0.storedTodos = [expected]
+            $0.$storedTodos.withLock { storedTodos in
+                storedTodos = [expected]
+            }
         }
     }
 
@@ -269,7 +278,7 @@ final class TodoListTabReducerTests: XCTestCase {
         let first = ToDo.mock(title: "First todo")
         let second = ToDo.mock(id: secondID, title: "Second todo")
 
-        @Shared(.todoStorage) var todos = [
+        @Shared(.todoStorage) var todos: IdentifiedArrayOf<ToDo> = [
             first, second
         ]
         let store = TestStore(initialState: TodoListTabReducer.State(.pending)) {
@@ -295,7 +304,7 @@ extension TodoListTabReducerTests {
         let todoID = ToDo.ID(UUID(0))
         let existingTodo = ToDo.mock(id: todoID, title: "Buy coffee")
 
-        @Shared(.todoStorage) var todos = [existingTodo]
+        @Shared(.todoStorage) var todos: IdentifiedArrayOf<ToDo> = [existingTodo]
         let store = TestStore(initialState: TodoListTabReducer.State(.pending)) {
             TodoListTabReducer()
         } withDependencies: {
@@ -314,7 +323,7 @@ extension TodoListTabReducerTests {
         let todoID = ToDo.ID(UUID(0))
         let todo = ToDo(id: todoID, title: "Byu coffee")
 
-        @Shared(.todoStorage) var todos = [todo]
+        @Shared(.todoStorage) var todos: IdentifiedArrayOf<ToDo> = [todo]
         let store = TestStore(initialState: TodoListTabReducer.State(.pending)) {
             TodoListTabReducer()
         } withDependencies: {
@@ -339,7 +348,7 @@ extension TodoListTabReducerTests {
         let todoID = ToDo.ID(UUID(0))
         let originalTodo = ToDo(id: todoID, title: "Byu coffee")
 
-        @Shared(.todoStorage) var todos = [originalTodo]
+        @Shared(.todoStorage) var todos: IdentifiedArrayOf<ToDo> = [originalTodo]
         let store = TestStore(initialState: TodoListTabReducer.State(.pending)) {
             TodoListTabReducer()
         } withDependencies: {

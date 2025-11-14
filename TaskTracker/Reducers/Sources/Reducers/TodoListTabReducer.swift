@@ -86,13 +86,17 @@ import Models
     }
 
     private func reduceMoveToTrash(state: inout State, todoID: ToDo.ID) -> Effect<Action> {
-        state.storedTodos[id: todoID]?.trashedAt = date.now
+        state.$storedTodos.withLock { todos in
+            todos[id: todoID]?.trashedAt = date.now
+        }
         updateDisplayedTodos(on: &state)
         return .none
     }
 
     private func reduceMoveFromTrash(state: inout State, todoID: ToDo.ID) -> Effect<Action> {
-        state.storedTodos[id: todoID]?.trashedAt = nil
+        state.$storedTodos.withLock { todos in
+            todos[id: todoID]?.trashedAt = nil
+        }
         updateDisplayedTodos(on: &state)
         return .none
     }
@@ -116,7 +120,9 @@ import Models
 
         let trimmedDueDate = todoToSave.dueDate?.trim(with: calendar)
         todoToSave.dueDate = trimmedDueDate
-        state.storedTodos[id: todoToSave.id] = todoToSave
+        state.$storedTodos.withLock { todos in
+            todos[id: todoToSave.id] = todoToSave
+        }
 
         state.todoForm = nil
 
@@ -140,7 +146,9 @@ import Models
         guard case .presented(.confirmPermanentDeletion(let id)) = alert else {
             return .none
         }
-        state.storedTodos.remove(id: id)
+        _ = state.$storedTodos.withLock { todos in
+            todos.remove(id: id)
+        }
         updateDisplayedTodos(on: &state)
         return .none
     }
@@ -149,7 +157,9 @@ import Models
         switch action {
         case .element(let id, let elementAction):
             if case .completionAction = elementAction {
-                state.storedTodos[id: id] = state.displayedTodos[id: id]
+                state.$storedTodos.withLock { todos in
+                    todos[id: id] = state.displayedTodos[id: id]
+                }
                 updateDisplayedTodos(on: &state)
             } else if case .tapAction = elementAction {
                 if let todoToEdit = state.storedTodos[id: id] {

@@ -126,45 +126,53 @@ public struct AppView: View {
 // MARK: - Previews
 
 #Preview("Empty") {
-    AppView(
-        store: Store(
-            initialState: AppReducer.State()
-        ) {
-            AppReducer()
-        }
-    )
+    WithInMemory { userDefaults in
+        @Shared(.todoStorage(store: userDefaults)) var todos: IdentifiedArrayOf<ToDo> = []
+        AppView(
+            store: Store(
+                initialState: AppReducer.State()
+            ) {
+                AppReducer()
+            } withDependencies: {
+                $0.defaultAppStorage = userDefaults
+            }
+        )
+    }
 }
 
 #Preview("Non-empty") {
-    let now = Date.now
-    @Shared(.todoStorage) var todos = [
-        .twoDaysOverdue(from: now, title: "First todo"),
-        .dueYesterday(from: now, title: "Second todo"),
-        .mock(title: "Third todo very very very long", dueDate: now),
-        .dueTomorrow(from: now, title: "Fourth todo"),
-        .dueThisWeek(from: now, title: "Fifth todo"),
-        .dueNextWeek(from: now, title: "Sixth todo"),
-        .mock(title: "Seventh todo"),
-        .mock(title: "Eighth todo"),
-        .mock(title: "Ninth todo"),
-        .mock(title: "Tenth todo"),
-        .mock(title: "Eleventh todo"),
-        .mock(title: "Twelfth todo"),
-        .mock(title: "Thirteenth todo"),
-        .mock(title: "Fourteenth todo"),
-        .mock(title: "Fifteenth todo"),
-        .mock(title: "Sixteenth todo"),
-        .mock(title: "Seventeenth todo"),
-        .mock(title: "Eighteenth todo"),
-        .mock(title: "Nineteenth todo"),
-        .mock(title: "Twentieth todo")
-    ]
-
-    return AppView(
-        store: Store(
-            initialState: AppReducer.State()
-        ) {
-            AppReducer()
-        }
-    )
+    WithInMemory { userDefaults in
+        let now = Date.now
+        @Shared(.todoStorage(store: userDefaults)) var todos: IdentifiedArrayOf<ToDo> = [
+            .twoDaysOverdue(from: now, title: "First todo"),
+            .dueYesterday(from: now, title: "Second todo"),
+            .mock(title: "Third todo very very very long", dueDate: now),
+            .dueTomorrow(from: now, title: "Fourth todo"),
+            .dueThisWeek(from: now, title: "Fifth todo"),
+            .dueNextWeek(from: now, title: "Sixth todo"),
+            .mock(title: "Seventh todo"),
+            .mock(title: "Eighth todo"),
+            .mock(title: "Ninth todo"),
+            .mock(title: "Tenth todo"),
+            .mock(title: "Eleventh todo"),
+            .mock(title: "Twelfth todo"),
+            .mock(title: "Thirteenth todo"),
+            .mock(title: "Fourteenth todo"),
+            .mock(title: "Fifteenth todo"),
+            .mock(title: "Sixteenth todo"),
+            .mock(title: "Seventeenth todo"),
+            .mock(title: "Eighteenth todo"),
+            .mock(title: "Nineteenth todo"),
+            .mock(title: "Twentieth todo")
+        ]
+        AppView(
+            store: Store(
+                initialState: AppReducer.State()
+            ) {
+                AppReducer()
+            } withDependencies: {
+                $0.defaultAppStorage = userDefaults
+            }
+        )
+    }
 }
