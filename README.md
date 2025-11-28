@@ -73,7 +73,7 @@ Create a To-Do List app using the Composable Architecture (TCA). The app should 
 
 ## 🤔 Possible improvements
 
-* UI texts stored in Localization files, instead of hardcoded strings
+* UI texts stored in Localization files, instead of hardcoded strings 🚧
 * On Swift Package level, some dependencies might be optimized
 * Search feature
 * Tagging support

@@ -3,6 +3,7 @@ import Models
 import Reducers
 import SwiftUI
 
+// TODO: Hardcoded number constants 🧹
 struct TodoListTabView: View {
 
     @Bindable var store: StoreOf<TodoListTabReducer>
