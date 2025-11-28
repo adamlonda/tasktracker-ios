@@ -55,7 +55,7 @@ Create a To-Do List app using the Composable Architecture (TCA). The app should 
 ## 🔨 Targeting & build
 
 * iOS 26
-* Xcode 26.1.1 (17B100)
+* Xcode 26.2 (17C52)
 * Swift 6.2
 
 ## 🧩 Modules
@@ -73,7 +73,7 @@ Create a To-Do List app using the Composable Architecture (TCA). The app should 
 
 ## 🤔 Possible improvements
 
-* UI texts stored in Localization files, instead of hardcoded strings
+* UI texts stored in Localization files, instead of hardcoded strings 🚧
 * On Swift Package level, some dependencies might be optimized
 * Search feature
 * Tagging support

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct NullableDatePicker: View {
 
+    // TODO: Localize ⤵️
     var title: String
     @Binding var selection: Date?
 
@@ -24,6 +25,7 @@ struct NullableDatePicker: View {
     }
 
     @ViewBuilder var notSetButton: some View {
+        // TODO: Localize ⤵️
         Button("Not set") {
             selection = .now
         }
@@ -44,8 +46,11 @@ struct NullableDatePicker: View {
     }
 
     @ViewBuilder var clearButton: some View {
-        Button("Clear", role: .destructive) {
+        // TODO: DRY ⤵️
+        Button(role: .destructive) {
             selection = nil
+        } label: {
+            Text("button.label.clear", bundle: .module)
         }
         .buttonStyle(.bordered)
     }

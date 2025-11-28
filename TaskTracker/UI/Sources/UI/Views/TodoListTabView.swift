@@ -3,6 +3,7 @@ import Models
 import Reducers
 import SwiftUI
 
+// TODO: Hardcoded number constants 🧹
 struct TodoListTabView: View {
 
     @Bindable var store: StoreOf<TodoListTabReducer>
@@ -76,7 +77,7 @@ struct TodoListTabView: View {
                     Button(role: .destructive) {
                         store.send(.moveToTrashAction(todoItemStore.id))
                     } label: {
-                        Label("Move to trash", systemImage: "trash")
+                        Label("button.label.move_to_trash", bundle: .module, systemImage: "trash")
                     }
                 }
         }
@@ -89,12 +90,12 @@ struct TodoListTabView: View {
                     Button {
                         store.send(.moveFromTrashAction(todoItemStore.id))
                     } label: {
-                        Label("Restore", systemImage: "arrow.uturn.backward")
+                        Label("button.label.restore", bundle: .module, systemImage: "arrow.uturn.backward")
                     }
                     Button(role: .destructive) {
                         store.send(.deleteAction(todoItemStore.id))
                     } label: {
-                        Label("Delete permanently", systemImage: "xmark.bin")
+                        Label("button.label.delete_permanently", bundle: .module, systemImage: "xmark.bin")
                     }
                 }
         }
@@ -104,6 +105,7 @@ struct TodoListTabView: View {
 // MARK: - Tab UI Extensions
 
 extension Models.Tab {
+    // TODO: Localize ⤵️
     fileprivate var title: String {
         switch self {
         case .pending:
@@ -149,6 +151,7 @@ extension Models.Tab {
         }
     }
 
+    // TODO: Localize ⤵️
     fileprivate var emptyText: String {
         switch self {
         case .pending:

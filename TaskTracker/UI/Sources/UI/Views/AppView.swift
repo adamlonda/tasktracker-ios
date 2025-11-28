@@ -3,6 +3,7 @@ import Models
 import Reducers
 import SwiftUI
 
+// TODO: Hardcoded number constants 🧹
 public struct AppView: View {
 
     @Bindable var store: StoreOf<AppReducer>
@@ -28,7 +29,7 @@ public struct AppView: View {
 
     @ViewBuilder var emptyView: some View {
         VStack(alignment: .center, spacing: .large) {
-            Text("You haven't added any tasks yet. Why don't you add some now?")
+            Text("text.no_tasks_yet", bundle: .module)
                 .font(.title2)
                 .multilineTextAlignment(.center)
             Button(
@@ -39,7 +40,7 @@ public struct AppView: View {
                         Image(systemName: "plus.circle.fill")
                             .resizable()
                             .frame(width: 48, height: 48)
-                        Text("Add my first task")
+                        Text("button.text.add_first_task", bundle: .module)
                     }
                 }
             )
@@ -69,7 +70,7 @@ public struct AppView: View {
         TodoListTabView(store: store.scope(state: \.todayTab, action: \.todayTabAction))
             .tabItem {
                 Image(systemName: "calendar")
-                Text("Today")
+                Text("tab.text.today", bundle: .module)
             }
             .tag(Tab.today)
     }
@@ -80,7 +81,7 @@ public struct AppView: View {
         TodoListTabView(store: store.scope(state: \.pendingTab, action: \.pendingTabAction))
             .tabItem {
                 Image(systemName: "tray")
-                Text("To Do")
+                Text("tab.text.todo", bundle: .module)
             }
             .tag(Tab.pending)
     }
@@ -91,7 +92,7 @@ public struct AppView: View {
         TodoListTabView(store: store.scope(state: \.completedTab, action: \.completedTabAction))
             .tabItem {
                 Image(systemName: "checkmark.circle")
-                Text("Done")
+                Text("tab.text.done", bundle: .module)
             }
             .tag(Tab.completed)
     }
@@ -102,7 +103,7 @@ public struct AppView: View {
         TodoListTabView(store: store.scope(state: \.allTab, action: \.allTabAction))
             .tabItem {
                 Image(systemName: "list.bullet")
-                Text("All")
+                Text("tab.text.all", bundle: .module)
             }
             .tag(Tab.all)
     }
@@ -111,7 +112,7 @@ public struct AppView: View {
         TodoListTabView(store: store.scope(state: \.trashBinTab, action: \.trashBinTabAction))
             .tabItem {
                 Image(systemName: "trash")
-                Text("Trash")
+                Text("tab.text.trash", bundle: .module)
             }
             .tag(Tab.trashBin)
     }
